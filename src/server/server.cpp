@@ -1,20 +1,16 @@
 #include "server/server.hpp"
 
 namespace local::host {
-void Server::handle(socket::TCPSocket &&_socket) {
-    while (true) {
-        data::Data command { _socket.receive() };
-    }
-}
+Server::Server(unsigned short _port) noexcept
+    : acceptor_ { socket::base::g_io_context, TCP::endpoint { TCP::v4(), _port } } { }
 void Server::start() {
 	try {
         while (true) {
-            std::shared_ptr<socket::TCPSocket> p_socket { 
-                new socket::TCPSocket { acceptor_.accept() } }
-            ;
-            std::jthread { [this, p_socket]() {
-                this->handle(p_socket);
-            } }
+            acceptor_.async_accept([this](const boost::system::error_code &_k_ec,
+                                          TCP::socket &&_socket) {
+                std::make_shared<Session>(std::move(_socket))->handle();
+                this->start();
+            });
         }
     }
     catch (...) { }
