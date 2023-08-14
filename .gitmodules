@@ -1,6 +1,0 @@
-[submodule "NetworkSocket"]
-	path = NetworkSocket
-	url = https://github.com/Foxyman-sama/NetworkSocket.git
-[submodule ".libs"]
-	path = .libs
-	url = https://github.com/Foxyman-sama/NetworkSocket.git
