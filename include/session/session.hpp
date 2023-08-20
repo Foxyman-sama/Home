@@ -1,19 +1,31 @@
 #ifndef LOCALHOST_SESSION_INCLUDE_HPP
 #define LOCALHOST_SESSION_INCLUDE_HPP
 
-#include "socket.hpp"
-
-using namespace network;
-
-using TCP = socket::base::TCP;
+#include <boost/bind/bind.hpp>
+#include "core.hpp"
+#include "json/json.hpp"
+#include "filemanager/filemanager.hpp"
 
 namespace local::host {
-class Session {
+class Commands {
+public:
+    static constexpr std::string_view k_receive_command_ { "receive" };
+    static constexpr std::string_view k_send_command_ { "send" };
+};
+class Session
+    : public std::enable_shared_from_this<Session> {
 private:
-    TCP::socket socket_;
+    core::Socket socket_;
+    utility::File file_;
+    JSON parser_;
+    FileManager filemanager_;
+
+    void send();
+    void receive();
+    void close() noexcept;
 
 public:
-    explicit Session(TCP::socket &&_socket) noexcept;
+    explicit Session(core::Socket &&_socket) noexcept;
     void handle();
 };
 }
