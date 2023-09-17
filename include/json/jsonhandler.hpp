@@ -3,12 +3,14 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include "utility/file.hpp"
+#include "responce.hpp"
 
 namespace local::host {
-class JSON {
+namespace pt = boost::property_tree;
+
+class JSONHandler {
 public:
-    std::pair<std::string, utility::File> parse(const core::Data &_k_data);
+    Responce parse(const core::Data &_k_data);
 };
 }
 

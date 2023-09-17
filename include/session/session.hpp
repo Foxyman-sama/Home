@@ -1,31 +1,29 @@
 #ifndef LOCALHOST_SESSION_INCLUDE_HPP
 #define LOCALHOST_SESSION_INCLUDE_HPP
 
-#include <boost/bind/bind.hpp>
+#include <iostream>
+#include "sessionhandler.hpp"
+#include "ui/icontroller.hpp"
+#include "debug/debug.hpp"
 #include "core.hpp"
-#include "json/json.hpp"
-#include "filemanager/filemanager.hpp"
 
 namespace local::host {
-class Commands {
-public:
-    static constexpr std::string_view k_receive_command_ { "receive" };
-    static constexpr std::string_view k_send_command_ { "send" };
-};
 class Session
     : public std::enable_shared_from_this<Session> {
 private:
+    size_t id_;
     core::Socket socket_;
-    utility::File file_;
-    JSON parser_;
-    FileManager filemanager_;
+    SessionHandler shandler_;
+    std::shared_ptr<ui::base::IController> p_contr_;
 
     void send();
     void receive();
     void close() noexcept;
+    bool checkOnError(const core::Error &_k_e) noexcept;
 
 public:
-    explicit Session(core::Socket &&_socket) noexcept;
+    explicit Session(core::Size _id, core::Socket &&_socket,
+                     std::shared_ptr<ui::base::IController> _p_cntrl) noexcept;
     void handle();
 };
 }

@@ -5,15 +5,14 @@
 #include "core.hpp"
 
 namespace local::host {
-class FileManager {
+class FileHandler {
 private:
     std::ifstream fin_;
     std::ofstream fout_;
 
 public:
-    void write(const std::string &_k_filename,
-               const core::Data &_k_data) noexcept;
-    core::Data read(const std::string &_k_filename) noexcept;
+    void write(const std::string &_k_filename, const core::Data &_k_data);
+    core::Data read(const std::string &_k_filename);
 };
 }
 

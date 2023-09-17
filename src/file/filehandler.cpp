@@ -1,13 +1,13 @@
-#include "filemanager/filemanager.hpp"
+#include "file/filehandler.hpp"
 
 namespace local::host {
-void FileManager::write(const std::string &_k_filename,
-                        const core::Data &_k_data) noexcept { 
+void FileHandler::write(const std::string &_k_filename, 
+                        const core::Data &_k_data) { 
     fout_.open(_k_filename, std::ios_base::binary);
     fout_.write(_k_data.data(), _k_data.size());
     fout_.close();
 }
-core::Data FileManager::read(const std::string &_k_filename) noexcept {
+core::Data FileHandler::read(const std::string &_k_filename) {
     fin_.open(_k_filename, std::ios_base::binary);
     fin_.seekg(0, fin_.end);
 

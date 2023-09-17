@@ -1,28 +1,27 @@
 #include "session/session.hpp"
 
 namespace local::host {
-Session::Session(core::Socket &&_socket) noexcept
-    : socket_ { std::move(_socket) }
-    , file_ { } { }
+Session::Session(core::Size _id, core::Socket &&_socket,
+                 std::shared_ptr<ui::base::IController> _p_cntrl) noexcept
+    : id_ { _id }, socket_ { std::move(_socket) }, p_contr_ { _p_cntrl } { }
 void Session::send() { 
+    p_contr_->setSendStatus(id_);
+    shandler_.read();
+
     auto p_self { shared_from_this() };
+    auto &size { shandler_.getSize() };
+    auto &data { shandler_.getData() };
     boost::asio::async_write(
-        socket_,
-        boost::asio::buffer(&file_.size_, sizeof(core::Size)),
-        [this, p_self](const core::Error &_k_e,
-                       size_t) {
-            if (_k_e) {
-                close();
+        socket_, boost::asio::buffer(&size, sizeof(core::Size)),
+        [this, p_self, &data](const core::Error &_k_e, size_t) {
+            if (checkOnError(_k_e)) {
                 return;
             }
 
             boost::asio::async_write(
-                socket_,
-                boost::asio::buffer(file_.data_, file_.size_),
-                [this, p_self](const core::Error &_k_e,
-                               size_t) {
-                    if (_k_e) {
-                        close();
+                socket_, boost::asio::buffer(data, data.size()),
+                [this, p_self](const core::Error &_k_e, size_t) {
+                    if (checkOnError(_k_e)) {
                         return;
                     }
 
@@ -31,70 +30,78 @@ void Session::send() {
         });
 }
 void Session::receive() { 
+    p_contr_->setReceiveStatus(id_);
+
     auto p_self { shared_from_this() };
+    auto &size { shandler_.getSize() };
+    auto &data { shandler_.getData() };
     boost::asio::async_read(
-        socket_,
-        boost::asio::buffer(&file_.size_, sizeof(core::Size)),
-        [this, p_self](const core::Error &_k_e,
-                       size_t) {
-            if (_k_e) {
-                close();
+        socket_, boost::asio::buffer(data, size),
+        [this, p_self](const core::Error &_k_e, size_t) {
+            if (checkOnError(_k_e)) {
                 return;
             }
 
-            file_.data_.resize(file_.size_);
-            boost::asio::async_read(
-                socket_,
-                boost::asio::buffer(file_.data_, file_.size_),
-                [this, p_self](const core::Error &_k_e,
-                               size_t) {
-                    if (_k_e) {
-                        close();
-                        return;
-                    }
-
-                    filemanager_.write(file_.filename_, file_.data_);
-                    handle();
-                });
+            shandler_.write();
+            handle();
         });
 }
 void Session::close() noexcept { 
     core::Error error { };
     socket_.shutdown(socket_.shutdown_both, error);
     socket_.close();
+    p_contr_->deleteSessionFromUI(id_);
+}
+bool Session::checkOnError(const core::Error &_k_e) noexcept { 
+    if (_k_e) {
+        utility::Debug::debug(
+            '(', socket_.remote_endpoint().address().to_string() + ":",
+            socket_.remote_endpoint().port(), ") ", _k_e.message());
+        close();
+        return true;
+    }
+    else if (shandler_.hasError() == true) {
+        utility::Debug::debug(
+            '(', socket_.remote_endpoint().address().to_string() + ":",
+            socket_.remote_endpoint().port(), ") ", shandler_.lastError());
+        close();
+        return true;
+    }
+
+    return false;
 }
 void Session::handle() {
-    auto p_self { shared_from_this() };
-    boost::asio::async_read(
-        socket_,
-        boost::asio::buffer(&file_.size_, sizeof(core::Size)),
-        [this, p_self](const core::Error &_k_e,
-                       size_t) {
-            if (_k_e) {
-                close();
-                return;
-            }
+    shandler_.clear();
+    p_contr_->setHandleStatus(id_);
 
-            file_.data_.resize(file_.size_);
+    auto p_self { shared_from_this() };
+    auto &size { shandler_.getSize() };
+    boost::asio::async_read(
+        socket_, boost::asio::buffer(&size, sizeof(core::Size)),
+        [this, p_self](const core::Error &_k_e, size_t) {
+            if (checkOnError(_k_e) == true) {
+                return;
+            }    
+
+            auto &data { shandler_.getData() };
+            data.resize(shandler_.getSize());
             boost::asio::async_read(
-                socket_,
-                boost::asio::buffer(file_.data_.data(), file_.size_),
-                [this, p_self](const core::Error &_k_e,
-                               size_t) {
-                    if (_k_e) {
-                        close();
+                socket_, boost::asio::buffer(data, data.size()),
+                [this, p_self](const core::Error &_k_e, size_t) {
+                    if (checkOnError(_k_e) == true) {
                         return;
                     }
 
-                    auto [command, file] { parser_.parse(file_.data_) };
-                    file_ = std::move(file);
-                    if (command == Commands::k_receive_command_) {
+                    shandler_.parse();
+
+                    auto command { shandler_.getCommand() };
+                    if (command == Command::RECEIVE) {
                         receive();
+                        return;
                     }
-                    else if (command == Commands::k_send_command_)  {
-                        file_.data_ = filemanager_.read(file_.filename_);
-                        file_.size_ = file_.data_.size();
+                    if (command == Command::SEND) {
                         send();
+                        return;
                     }
                 });
         });

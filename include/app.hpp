@@ -3,18 +3,26 @@
 
 #include <iostream>
 #include "server/server.hpp"
+#include "ui/ui.hpp"
+#include "ui/controller.hpp"
 
 namespace local {
 void runApp() {
-    host::Server server { 9191 };
+    std::thread { []() {  
+        auto &ui { ui::UI::getUI() };
+        ui.init("Server", 800, 600);
+        ui.start();
+    } }.detach();
     while (true) {
+        core::net::io_context io { };
         try {
-            server.init();
-            core::g_io_context.run();
+            auto p_controller { std::make_shared<ui::Controller>() };
+            host::Server server { io, 9191, p_controller };
+            server.start();
+            io.run();
         }
         catch (const std::exception &_k_e) {
             std::cerr << _k_e.what() << '\n';
-            core::g_io_context.reset();
         }
     }
 }
