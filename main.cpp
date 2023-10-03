@@ -1,5 +1,5 @@
-﻿#include "app.hpp"
+﻿#include "network/network.hpp"
 
 int main() {
-    local::runApp();
+    home::network::Network net { };
 }
