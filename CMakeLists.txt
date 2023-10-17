@@ -1,20 +1,19 @@
-﻿cmake_minimum_required(VERSION 3.8)
+﻿cmake_minimum_required(VERSION 3.20)
 project(HOME)
+
+option(Testing "Tests" ON)
+configure_file(config.h.in config.h @ONLY)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 
-find_package(Boost REQUIRED)
+add_executable(${PROJECT_NAME} main.cxx)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR})
+target_link_libraries(${PROJECT_NAME} PUBLIC Entities)
 
-file(GLOB_RECURSE sources
-	include/*.hpp
-	src/*.cpp
-)
+add_subdirectory(modules)
 
-add_executable(${PROJECT_NAME}
-	main.cpp
-	${sources}
-)
-target_link_libraries(${PROJECT_NAME} PUBLIC Network)
-
-add_subdirectory(network)
+if (Testing)
+	add_subdirectory(test)
+	target_link_libraries(${PROJECT_NAME} PUBLIC Tests)
+endif()
