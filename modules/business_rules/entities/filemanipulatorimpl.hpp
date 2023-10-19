@@ -5,7 +5,7 @@
 #include "filemanipulator.hpp"
 
 namespace home::entities {
-class EntitiesAPI FileManipulatorImpl
+class BRAPI FileManipulatorImpl
     : public FileManipulator {
 private:
     std::fstream filemanipulator_;

@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <string>
-#include "entities_api.hpp"
+#include "../business_rules_api.hpp"
 
 namespace home::entities {
-class EntitiesAPI FileManipulator {
+class BRAPI FileManipulator {
 public:
     virtual std::vector<char> readFile(const std::string &) = 0;
     virtual void writeFile(const std::string &, const std::vector<char> &) = 0;

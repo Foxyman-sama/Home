@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "modules/entities/filemanipulatorimpl.hpp"
+#include "modules/business_rules/entities/filemanipulatorimpl.hpp"
 
 constexpr std::string_view gk_test_file { "test/test.txt" };
 constexpr size_t gk_test_file_size { 100 };
@@ -14,7 +14,7 @@ public:
     home::entities::FileManipulatorImpl *p_fm_;
 
     void SetUp() override { 
-        p_fm_ = new  home::entities::FileManipulatorImpl { };
+        p_fm_ = new home::entities::FileManipulatorImpl { };
     }
     void TearDown() override {
         delete p_fm_;
@@ -31,7 +31,7 @@ TEST_F(FileManipulatorImplTest, EmptyFilenameAndDataWriteExpectThrow) {
     ASSERT_THROW(p_fm_->writeFile("", { }), std::runtime_error);
 }
 TEST_F(FileManipulatorImplTest, EmptyFilenameWriteExpectThrow) {
-    ASSERT_THROW(p_fm_->writeFile("", { 'f' }), std::runtime_error);
+    ASSERT_THROW(p_fm_->writeFile("", { }), std::runtime_error);
 }
 TEST_F(FileManipulatorImplTest, EmptyDataWriteExpectThrow) {
     ASSERT_THROW(p_fm_->writeFile(gk_test_file.data(), { }), std::runtime_error);
