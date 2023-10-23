@@ -14,7 +14,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 add_subdirectory(modules)
-
+ 
 if (Testing)
 	enable_testing()
 	add_subdirectory(test)

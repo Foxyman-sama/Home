@@ -1,60 +1,45 @@
 #ifndef TEST_ENTITIES_HPP
 #define TEST_ENTITIES_HPP
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-#include "modules/business_rules/entities/filemanipulatorimpl.hpp"
+#include "test_definitions.hpp"
 
-constexpr std::string_view gk_test_file { "test/test.txt" };
-constexpr size_t gk_test_file_size { 100 };
+TEST_F(FileReaderTest, EmptyFilenameExpectThrow) {
+  ASSERT_THROW(read_stream.open(""), std::exception);
+}
+TEST_F(FileReaderTest, BadFilenameExpectThrow) {
+  ASSERT_THROW(read_stream.open("ffff//"), std::exception);
+}
+TEST_F(FileWriterTest, EmptyFilenameExpectThrow) {
+  ASSERT_THROW(write_stream.open(""), std::exception);
+}
+TEST_F(FileWriterTest, BadFilenameExpectThrow) {
+  ASSERT_THROW(write_stream.open("ffff//"), std::exception);
+}
+TEST_F(FileWriterReaderTest, CorrectWriteAndRead1000Times) {
+  recreateTestDirectory();
 
-class FileManipulatorImplTest
-    : public testing::Test {
-public:
-    home::entities::FileManipulatorImpl *p_fm_;
+  std::vector<char> expected { };
+  expected.resize(test_file_size, 'f');
 
-    void SetUp() override { 
-        p_fm_ = new home::entities::FileManipulatorImpl { };
-    }
-    void TearDown() override {
-        delete p_fm_;
-    }
-};
+  std::vector<std::string> native_filenames_paths { };
+  for (size_t i { }; i < 1'000; ++i) {
+    std::string native_filename_path {
+      path_test_directory + std::to_string(i) + test_filename };
+    native_filenames_paths.emplace_back(native_filename_path);
+    ASSERT_NO_THROW(write_stream.open(native_filename_path));
+    ASSERT_NO_THROW(write_stream->write(expected));
+  }
 
-TEST_F(FileManipulatorImplTest, EmptyReadExpectThrow) {
-    ASSERT_THROW(p_fm_->readFile(""), std::runtime_error);
-}
-TEST_F(FileManipulatorImplTest, BadFilenameReadExpectThrow) {
-    ASSERT_THROW(p_fm_->readFile("f.txt"), std::runtime_error);
-}
-TEST_F(FileManipulatorImplTest, EmptyFilenameAndDataWriteExpectThrow) {
-    ASSERT_THROW(p_fm_->writeFile("", { }), std::runtime_error);
-}
-TEST_F(FileManipulatorImplTest, EmptyFilenameWriteExpectThrow) {
-    ASSERT_THROW(p_fm_->writeFile("", { }), std::runtime_error);
-}
-TEST_F(FileManipulatorImplTest, EmptyDataWriteExpectThrow) {
-    ASSERT_THROW(p_fm_->writeFile(gk_test_file.data(), { }), std::runtime_error);
-}
-TEST_F(FileManipulatorImplTest, CorrectWriteAndCorrectRead) {
-    std::vector<char> test_case { };
-    for (size_t i { }; i < gk_test_file_size; ++i) {
-        test_case.emplace_back('f');
-    }
+  write_stream.close();
+
+  auto begin { native_filenames_paths.cbegin() };
+  auto end { native_filenames_paths.cend() };
+  for (auto it { begin }; it != end; ++it) {
+    ASSERT_NO_THROW(read_stream.open(*it));
     
-    ASSERT_NO_THROW(p_fm_->writeFile(gk_test_file.data(), test_case));
-    ASSERT_EQ(p_fm_->readFile(gk_test_file.data()), test_case);
-}
-TEST_F(FileManipulatorImplTest, CorrectWriteAndCorrectRead1000Times) {
-    for (size_t time { }; time < 1'000; ++time) {
-        std::vector<char> test_case { };
-        for (size_t i { }; i < gk_test_file_size; ++i) {
-            test_case.emplace_back('f');
-        }
-
-        ASSERT_NO_THROW(p_fm_->writeFile(gk_test_file.data(), test_case));
-        ASSERT_EQ(p_fm_->readFile(gk_test_file.data()), test_case);
-    }
+    auto actual { read_stream->read() };
+    ASSERT_EQ(actual, expected) << "actual_size: " << actual.size();
+  }
 }
 
 #endif

@@ -1,24 +1,25 @@
-#ifndef INTERACTOR_INTERACTOR_HPP
-#define INTERACTOR_INTERACTOR_HPP
+#ifndef HOME_INTERACTOR_HPP
+#define HOME_INTERACTOR_HPP
 
-#include <stdexcept>
-#include "ioboundary.hpp"
-#include "../entities/filemanipulator.hpp"
-#include "../business_rules_api.hpp"
+#include "../entities/readstreamfactory.hpp"
+#include "../entities/writestreamfactory.hpp"
+#include "boundary.hpp"
 
 namespace home::interactor {
-class BRAPI UseCaseInteractor 
-    : public IOBoundary {
+class Interactor
+  : public Boundary {
 private:
-    using VectorString = std::vector<std::string>;
-
-    entities::FileManipulator &fmanipulator_;
+  std::string directory_path;
+  entities::WriteStreamFactory &creator_write_stream;
+  entities::ReadStreamFactory &creator_read_stream;
 
 public:
-    explicit UseCaseInteractor(entities::FileManipulator &_fmanipulator) noexcept
-        : fmanipulator_ { _fmanipulator } { }
-    void writeFiles(const HashTableFiles &_k_files) override;
-    std::vector<char> readFiles(const VectorString &_k_filenames) override;
+  explicit Interactor(const std::string &directory_path, entities::WriteStreamFactory &creator_write_stream,
+                      entities::ReadStreamFactory &creator_read_stream) 
+    : directory_path { directory_path }, creator_write_stream { creator_write_stream }
+    , creator_read_stream { creator_read_stream } { }
+  void writeFiles(const InputData &input_data) override;
+  OutputData readFiles(const InputData &input_data) override;
 };
 }
 
