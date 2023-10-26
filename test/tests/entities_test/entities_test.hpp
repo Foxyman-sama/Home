@@ -15,7 +15,7 @@ TEST_F(FileWriterTest, EmptyFilenameExpectThrow) {
 TEST_F(FileWriterTest, BadFilenameExpectThrow) {
   ASSERT_THROW(write_stream.open("ffff//"), std::exception);
 }
-TEST_F(FileWriterReaderTest, CorrectWriteAndRead1000Times) {
+TEST_F(FileWriterReaderTest, CorrectWriteAndCorrectRead1000Times) {
   recreateTestDirectory();
 
   std::vector<char> expected { };
@@ -23,8 +23,7 @@ TEST_F(FileWriterReaderTest, CorrectWriteAndRead1000Times) {
 
   std::vector<std::string> native_filenames_paths { };
   for (size_t i { }; i < 1'000; ++i) {
-    std::string native_filename_path {
-      path_test_directory + std::to_string(i) + test_filename };
+    std::string native_filename_path { createFilename(i) };
     native_filenames_paths.emplace_back(native_filename_path);
     ASSERT_NO_THROW(write_stream.open(native_filename_path));
     ASSERT_NO_THROW(write_stream->write(expected));

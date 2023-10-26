@@ -5,7 +5,7 @@
 #include "outputdata.hpp"
 
 namespace home::interactor {
-  class Boundary {
+  class BRAPI Boundary {
   public:
     virtual void writeFiles(const InputData &) = 0;
     virtual OutputData readFiles(const InputData &) = 0;

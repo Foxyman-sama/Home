@@ -18,5 +18,8 @@ void recreateTestDirectory() noexcept {
     deleteFilesFromTestDirectory();
     createTestDirectory();
 }
+std::string createFilename(size_t index) {
+  return path_test_directory + std::to_string(index) + test_filename;
+}
 
 #endif

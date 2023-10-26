@@ -2,17 +2,12 @@
 #define HOME_OUTPUT_DATA_HPP
 
 #include <variant>
-#include <vector>
-#include <string>
-#include <unordered_map>
-
-using VectorStrings = std::vector<std::string>;
-using HashTableFiles = std::unordered_map<std::string, std::vector<char>>;
+#include "definitions.hpp"
 
 namespace home::interactor {
-class OutputData {
+class BRAPI OutputData {
 public:
-  std::variant<HashTableFiles, VectorStrings> files;
+  FileVariant files;
 };
 }
 

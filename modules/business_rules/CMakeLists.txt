@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(BusinessRules) 
 
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_STANDARD 23)
+
 add_library(${PROJECT_NAME} SHARED 
 	business_rules_api.hpp
 
@@ -21,6 +24,7 @@ add_library(${PROJECT_NAME} SHARED
 	entities/filereadstreamfactory.cxx
 
 	interactor/boundary.hpp
+	interactor/definitions.hpp
 	interactor/inputdata.hpp
 	interactor/outputdata.hpp
 	interactor/interactor.hpp
