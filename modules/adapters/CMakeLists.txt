@@ -9,7 +9,8 @@ add_library(${PROJECT_NAME} SHARED
 	
 	controller.hpp
 	webcontroller.hpp
-	webcontroller.cxx)
+	webcontroller.cxx
+	jsonconverter.hpp)
 	
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 

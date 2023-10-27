@@ -3,9 +3,10 @@
 
 #include <vector>
 #include <optional>
+#include "adapters_api.hpp"
 
 namespace home::adapters::controller {
-class Controller {
+class AdaptersAPI Controller {
 public:
   virtual std::optional<std::vector<char>> handle(const std::vector<char> &) = 0;
 };

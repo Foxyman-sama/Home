@@ -23,24 +23,27 @@ TEST_F(InteractorTest, BadInputDataInWriteFilesExpectThrow) {
   test_case.emplace<0>(test_map);
   ASSERT_THROW(interactor->writeFiles({ test_case }), std::exception);
 }
-TEST_F(InteractorTest, CorrectWriteAndCorrectRead1000Files) {
-  recreateTestDirectory();
-
-  std::vector<char> expected { };
-  expected.resize(test_file_size, 'f');
-
+TEST_F(InteractorTest, CorrectCallFunctionWriteAndCorrectCallFunctionRead1000Files) {
+  std::vector<char> expected { 'f' };
   home::interactor::FilenamesVector test_filenames { };
   home::interactor::FilenameDataMap test_map { };
   for (size_t i { }; i < 1'000; ++i) {
     test_filenames.emplace_back(createFilename(i));
   }
+
+  std::shared_ptr<MockReadStream> read_stream { new MockReadStream { } };
+  std::shared_ptr<MockWriteStream> write_stream { new MockWriteStream { } };
   for (auto &&filename: test_filenames) {
     test_map[filename] = expected;
   }
 
   home::interactor::FileVariant test_case { test_map };
+  EXPECT_CALL(*write_stream, write(expected)).Times(1'000);
+  EXPECT_CALL(*read_stream, read).Times(1'000);
+  EXPECT_CALL(write_factory, create(testing::_)).Times(1'000).WillRepeatedly(testing::Return(write_stream));
+  EXPECT_CALL(read_factory, create(testing::_)).Times(1'000).WillRepeatedly(testing::Return(read_stream));
   ASSERT_NO_THROW(interactor->writeFiles({ test_case }));
-  ASSERT_EQ(interactor->readFiles({ test_filenames }).files, test_case);
+  ASSERT_NO_THROW(interactor->readFiles({ test_filenames }));
 }
 
 #endif

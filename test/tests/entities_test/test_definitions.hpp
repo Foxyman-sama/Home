@@ -2,12 +2,12 @@
 #define ENTITIES_TESTS_DEF_HPP
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include "modules/business_rules/entities/filereadstream.hpp"
 #include "modules/business_rules/entities/filewritestream.hpp"
 #include "../configtest.hpp"
 
-class ReadStream {
+
+class TestingReadStream {
 public:
   std::unique_ptr<home::entities::FileReadStream> reader;
 
@@ -21,7 +21,7 @@ public:
     return reader.operator->();
   }
 };
-class WriteStream {
+class TestingWriteStream {
 public:
   std::unique_ptr<home::entities::FileWriteStream> writer;
 
@@ -38,17 +38,17 @@ public:
 class FileReaderTest
   : public testing::Test {
 public:
-  ReadStream read_stream;
+  TestingReadStream read_stream;
 };
 class FileWriterTest
   : public testing::Test {
 public:
-  WriteStream write_stream;
+  TestingWriteStream write_stream;
 };
 class FileWriterReaderTest 
   : public testing::Test {
 public:
-  WriteStream write_stream;
-  ReadStream read_stream;
+  TestingWriteStream write_stream;
+  TestingReadStream read_stream;
 };
 #endif

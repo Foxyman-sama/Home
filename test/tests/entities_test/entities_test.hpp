@@ -27,17 +27,13 @@ TEST_F(FileWriterReaderTest, CorrectWriteAndCorrectRead1000Times) {
     native_filenames_paths.emplace_back(native_filename_path);
     ASSERT_NO_THROW(write_stream.open(native_filename_path));
     ASSERT_NO_THROW(write_stream->write(expected));
+    ASSERT_NO_THROW(write_stream.close());
   }
-
-  write_stream.close();
-
-  auto begin { native_filenames_paths.cbegin() };
-  auto end { native_filenames_paths.cend() };
   for (auto &&native_filename_path: native_filenames_paths) {
     ASSERT_NO_THROW(read_stream.open(native_filename_path));
-    
+
     auto actual { read_stream->read() };
-    ASSERT_EQ(actual, expected) << "actual_size: " << actual.size();
+    ASSERT_EQ(actual, expected);
   }
 }
 

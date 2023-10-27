@@ -7,41 +7,35 @@
 #include "modules/business_rules/entities/readstreamfactory.hpp"
 #include "modules/business_rules/entities/writestreamfactory.hpp"
 #include "../configtest.hpp"
- 
-using namespace home::entities;
-using namespace home::interactor;
 
-class MockReadStream 
+using namespace home::entities;
+
+class MockReadStream
   : public home::entities::ReadStream {
-public:
+public:  
   MOCK_METHOD(std::vector<char>, read, (), (override));
 };
 class MockWriteStream
   : public home::entities::WriteStream {
-public:
+public:  
   MOCK_METHOD(void, write, (const std::vector<char> &), (override));
 };
-class StubReadStreamFactory
+class MockReadStreamFactory
   : public ReadStreamFactory {
-public:
-  std::shared_ptr<home::entities::ReadStream> create(const std::string &) override {
-    return std::shared_ptr<home::entities::ReadStream> { new MockReadStream { } };
-  }
+public:  
+  MOCK_METHOD(std::shared_ptr<home::entities::ReadStream>, create, (const std::string &), (override));
 };
-class StubWriteStreamFactory 
+class MockWriteStreamFactory
   : public WriteStreamFactory {
 public:
-  std::shared_ptr<home::entities::WriteStream> create(const std::string &) override {
-    return std::shared_ptr<home::entities::WriteStream> { new MockWriteStream { } };
-  }
+  MOCK_METHOD(std::shared_ptr<home::entities::WriteStream>, create, (const std::string &), (override));
 };
-
 class InteractorTest 
   : public testing::Test {
 public:
   std::unique_ptr<home::interactor::Interactor> interactor;
-  StubReadStreamFactory read_factory;
-  StubWriteStreamFactory write_factory;
+  MockWriteStreamFactory write_factory;
+  MockReadStreamFactory read_factory;
 
   void SetUp() override {
     interactor.reset(new home::interactor::Interactor { path_test_directory, write_factory, read_factory });

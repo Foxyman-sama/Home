@@ -2,9 +2,9 @@
 #define ADAPTERS_API_HPP
 
 #ifdef Adapters_EXPORTS
-#define Adapters_API __declspec(dllexport)
+#define AdaptersAPI __declspec(dllexport)
 #else
-#define Adapters_API __declspec(dllimport)
+#define AdaptersAPI __declspec(dllimport)
 #endif
 
 
