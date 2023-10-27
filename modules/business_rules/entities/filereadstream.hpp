@@ -10,10 +10,10 @@ class BRAPI FileReadStream
 private:
   std::ifstream in_stream;
 
-  void throwException(const std::string &filename);
   void tryOpen(const std::string &filename);
   size_t readSize();
   std::vector<char> readData(size_t size);
+  void throwException(const std::string &filename);
 
 public:
   explicit FileReadStream(const std::string &filename);

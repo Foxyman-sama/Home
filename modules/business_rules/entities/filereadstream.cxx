@@ -4,8 +4,8 @@ namespace home::entities {
 FileReadStream::FileReadStream(const std::string &filename) {
   tryOpen(filename);
 }
-void FileReadStream::throwException(const std::string &filename) {
-  throw std::exception { ("File: " + filename + " can't be opened").c_str() };
+std::vector<char> FileReadStream::read() {
+  return readData(readSize());
 }
 void FileReadStream::tryOpen(const std::string &filename) {
   in_stream.open(filename);
@@ -26,7 +26,7 @@ std::vector<char> FileReadStream::readData(size_t size) {
   in_stream.read(file_data.data(), size);
   return file_data;
 }
-std::vector<char> FileReadStream::read() {
-  return readData(readSize());
+void FileReadStream::throwException(const std::string &filename) {
+  throw std::exception { ("File: " + filename + " can't be opened").c_str() };
 }
 }

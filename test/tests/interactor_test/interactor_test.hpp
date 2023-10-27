@@ -39,7 +39,7 @@ TEST_F(InteractorTest, CorrectWriteAndCorrectRead1000Files) {
   }
 
   home::interactor::FileVariant test_case { test_map };
-  ASSERT_NO_THROW(interactor->writeFiles({ test_case }), std::exception);
+  ASSERT_NO_THROW(interactor->writeFiles({ test_case }));
   ASSERT_EQ(interactor->readFiles({ test_filenames }).files, test_case);
 }
 

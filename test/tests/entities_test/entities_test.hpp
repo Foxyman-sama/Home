@@ -33,8 +33,8 @@ TEST_F(FileWriterReaderTest, CorrectWriteAndCorrectRead1000Times) {
 
   auto begin { native_filenames_paths.cbegin() };
   auto end { native_filenames_paths.cend() };
-  for (auto it { begin }; it != end; ++it) {
-    ASSERT_NO_THROW(read_stream.open(*it));
+  for (auto &&native_filename_path: native_filenames_paths) {
+    ASSERT_NO_THROW(read_stream.open(native_filename_path));
     
     auto actual { read_stream->read() };
     ASSERT_EQ(actual, expected) << "actual_size: " << actual.size();
