@@ -9,12 +9,23 @@
 
 using namespace home;
 
+class TestInputData 
+  : public interactor::InputData {
+public:
+  bool operator==(const TestInputData &another) const noexcept {
+    if (this->files == another.files) {
+      return false;
+    }
+
+    return true;
+  }
+};
 class MockBoundary
   : public interactor::Boundary {
 public:
   MOCK_METHOD(void, writeFiles, (const interactor::InputData &), (override));
   MOCK_METHOD(interactor::OutputData, readFiles, (const interactor::InputData &), (override));
-};
+};                                                                                             
 class MockJSONConverter
   : public adapters::JSONConverter {
 public:
