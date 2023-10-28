@@ -11,7 +11,7 @@ add_executable(${PROJECT_NAME} main.cxx)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC
 	BusinessRules
-)
+	Adapters)
 
 add_subdirectory(modules)
  

@@ -5,7 +5,7 @@
 #include "controller.hpp"
 #include "jsonconverter.hpp"
 
-namespace home::adapters::controller {
+namespace home::adapters {
 class AdaptersAPI WebController 
   : public Controller {
 private:

@@ -5,7 +5,7 @@
 #include <optional>
 #include "adapters_api.hpp"
 
-namespace home::adapters::controller {
+namespace home::adapters {
 class AdaptersAPI Controller {
 public:
   virtual std::optional<std::vector<char>> handle(const std::vector<char> &) = 0;

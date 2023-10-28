@@ -15,5 +15,22 @@ public:
   MOCK_METHOD(void, writeFiles, (const interactor::InputData &), (override));
   MOCK_METHOD(interactor::OutputData, readFiles, (const interactor::InputData &), (override));
 };
+class MockJSONConverter
+  : public adapters::JSONConverter {
+public:
+  MOCK_METHOD(adapters::JSON, convert, (const std::vector<char> &), (override));
+};
+
+class ControllerTest 
+  : public testing::Test {
+public:
+  std::unique_ptr<adapters::WebController> controller;
+  MockBoundary boundary;
+  MockJSONConverter converter;
+
+  void SetUp() override {
+    controller.reset(new adapters::WebController { boundary, converter });
+  }
+};
 
 #endif
