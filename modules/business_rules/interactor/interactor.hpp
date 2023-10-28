@@ -15,8 +15,10 @@ private:
 
   FilenameDataMap getFilenamesAndData(const InputData &input_data);
   FilenamesVector getFilenames(const InputData &input_data);
-  FilenameDataMap read(const std::vector<std::string> &filenames);
-  void write(const FilenameDataMap &files);
+  FilenameDataMap tryReadFiles(const std::vector<std::string> &filenames);
+  std::vector<char> tryReadFile(const std::string &filename);
+  void tryWriteFiles(const FilenameDataMap &files);
+  void tryWriteFile(const std::string &filename, const std::vector<char> &filedata);
   void checkFilename(const std::string &filename);
   void throwException(const std::string &text);
 

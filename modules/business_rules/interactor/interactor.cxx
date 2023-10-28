@@ -3,6 +3,8 @@
 #include "interactor.hpp"
 #include "interactor.hpp"
 #include "interactor.hpp"
+#include "interactor.hpp"
+#include "interactor.hpp"
 
 namespace home::interactor {
 Interactor::Interactor(const std::string &directory_path, entities::WriteStreamFactory &creator_write_stream,
@@ -11,11 +13,11 @@ Interactor::Interactor(const std::string &directory_path, entities::WriteStreamF
   , creator_read_stream { creator_read_stream } { }
 void Interactor::writeFiles(const InputData &input_data) {
   auto filename_data_map { getFilenamesAndData(input_data) };
-  write(filename_data_map);
+  tryWriteFiles(filename_data_map);
 }
 OutputData Interactor::readFiles(const InputData &input_data) {
   auto filenames { getFilenames(input_data) };
-  FilenameDataMap files { read(filenames) };
+  FilenameDataMap files { tryReadFiles(filenames) };
   return OutputData { files };
 }
 FilenameDataMap Interactor::getFilenamesAndData(const InputData &input_data) {
@@ -34,24 +36,30 @@ FilenamesVector Interactor::getFilenames(const InputData &input_data) {
 
   return filenames;
 }
-FilenameDataMap Interactor::read(const std::vector<std::string> &filenames) {
+FilenameDataMap Interactor::tryReadFiles(const std::vector<std::string> &filenames) {
   FilenameDataMap files { };
   for (auto &&filename: filenames) {
-    checkFilename(filename);
-
-    auto read_stream { creator_read_stream.create(filename) };
-    files[filename] = read_stream->read();
+    files[filename] = tryReadFile(filename);
   }
 
   return files;
 }
-void Interactor::write(const FilenameDataMap &files) {
-  for (auto &&[filename, filedata]: files) {
-    checkFilename(filename);
+std::vector<char> Interactor::tryReadFile(const std::string &filename) {
+  checkFilename(filename);
 
-    auto write_stream { creator_write_stream.create(filename) };
-    write_stream->write(filedata);
+  auto read_stream { creator_read_stream.create(filename) };
+  return read_stream->read();
+}
+void Interactor::tryWriteFiles(const FilenameDataMap &files) {
+  for (auto &&[filename, filedata]: files) {
+    tryWriteFile(filename, filedata);
   }
+}
+void Interactor::tryWriteFile(const std::string &filename, const std::vector<char> &filedata) {
+  checkFilename(filename);
+
+  auto write_stream { creator_write_stream.create(filename) };
+  write_stream->write(filedata);
 }
 void Interactor::checkFilename(const std::string &filename) {
   if (filename.empty() == true) {
