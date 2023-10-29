@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace home::adapters {
-class JSON {
+class __declspec(dllexport) JSON {
 public:
   std::string command;
   std::vector<std::string> filenames;

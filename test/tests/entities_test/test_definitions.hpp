@@ -6,7 +6,6 @@
 #include "modules/business_rules/entities/filewritestream.hpp"
 #include "../configtest.hpp"
 
-
 class TestingReadStream {
 public:
   std::unique_ptr<home::entities::FileReadStream> reader;

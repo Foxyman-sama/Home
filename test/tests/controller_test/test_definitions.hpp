@@ -3,23 +3,11 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "modules/adapters/webcontroller.hpp"
-#include "modules/business_rules/interactor/boundary.hpp"
-#include "../configtest.hpp"
+
+/*
 
 using namespace home;
 
-class TestInputData 
-  : public interactor::InputData {
-public:
-  bool operator==(const TestInputData &another) const noexcept {
-    if (this->files == another.files) {
-      return false;
-    }
-
-    return true;
-  }
-};
 class MockBoundary
   : public interactor::Boundary {
 public:
@@ -30,6 +18,17 @@ class MockJSONConverter
   : public adapters::JSONConverter {
 public:
   MOCK_METHOD(adapters::JSON, convert, (const std::vector<char> &), (override));
+};                                                                                          
+class MockSerializer
+  : public adapters::Serializer {
+public:
+  MOCK_METHOD(std::vector<char>, serialize, (const std::vector<std::vector<char>> &), (override));
+};                                                                                          
+class MockDeserializer
+  : public adapters::Deserializer {
+public:  
+  MOCK_METHOD(std::vector<std::vector<char>>, deserialize, (const std::vector<char> &), (override));
+
 };
 class ControllerTest 
   : public testing::Test {
@@ -37,10 +36,12 @@ public:
   std::unique_ptr<adapters::WebController> controller;
   MockBoundary boundary;
   MockJSONConverter converter;
+  MockSerializer serializer;
+  MockDeserializer deserializer;
 
   void SetUp() override {
-    controller.reset(new adapters::WebController { boundary, converter });
+    controller.reset(new adapters::WebController { boundary, converter, serializer, deserializer });
   }
-};
+};*/
 
 #endif

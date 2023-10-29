@@ -18,8 +18,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	${CMAKE_SOURCE_DIR}
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
-	GTest::gtest 
-	GTest::gtest_main
 	GTest::gmock_main
 	${GTEST_LIBRARIES}
 )

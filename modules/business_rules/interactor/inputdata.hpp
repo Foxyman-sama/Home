@@ -5,7 +5,7 @@
 #include "definitions.hpp"
 
 namespace home::interactor {
-class BRAPI InputData {
+class __declspec(dllexport) InputData {
 public:
   FileVariant files;
 };

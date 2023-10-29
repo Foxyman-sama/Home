@@ -8,11 +8,11 @@
 #include "../business_rules_api.hpp"
 
 namespace home::interactor {
-class BRAPI FilenamesVector
+class __declspec(dllexport) FilenamesVector
   : public std::vector<std::string> { };
-class BRAPI FilenameDataMap
+class __declspec(dllexport) FilenameDataMap
   : public  std::unordered_map<std::string, std::vector<char>> { };
-class BRAPI FileVariant
+class __declspec(dllexport) FileVariant
   : public std::variant<FilenameDataMap, FilenamesVector> { };
 }
 
