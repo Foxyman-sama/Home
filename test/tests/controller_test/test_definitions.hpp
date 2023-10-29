@@ -31,7 +31,6 @@ class MockJSONConverter
 public:
   MOCK_METHOD(adapters::JSON, convert, (const std::vector<char> &), (override));
 };
-
 class ControllerTest 
   : public testing::Test {
 public:
