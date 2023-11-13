@@ -18,8 +18,7 @@ private:
   std::ifstream in_stream;
 
   void tryOpen(const std::string &filename);
-  size_t readSize();
-  std::vector<char> readData(size_t size);
+
   void throwException(const std::string &filename);
 
 public:
@@ -47,12 +46,16 @@ class BRAPI FileWriteStream
 private:
   std::ofstream out_stream;
 
-  void throwException(const std::string &filename);
   void tryOpen(const std::string &filename);
+
+  void throwException(const std::string &filename);
 
 public:
   explicit FileWriteStream(const std::string &filename);
+
   void write(const std::vector<char> &data) override;
+
+  bool isOpen() const noexcept;
 };
 
 class BRAPI WriteStreamFactory {

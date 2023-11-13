@@ -2,13 +2,15 @@
 #define HOME_INTERACTOR_HPP
 
 #include "../entities/entities.hpp"
-#include "boundary.hpp"
+#include "read_boundary.hpp"
+#include "write_boundary.hpp"
 
 namespace home::interactor {
 namespace ent = home::entities;
 
 class BRAPI Interactor
-  : public Boundary {
+  : public ReadBoundary 
+  , public WriteBoundary {
 private:
 
 private:
@@ -23,6 +25,7 @@ private:
   void tryWriteFile(const std::string &filename, const std::vector<char> &filedata);
 
   void checkFilename(const std::string &filename);
+
   void throwException(const std::string &text);
 
 public:

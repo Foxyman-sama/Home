@@ -1,5 +1,5 @@
-#ifndef HOME_BOUNDARY_HPP
-#define HOME_BOUNDARY_HPP
+#ifndef HOME_READ_BOUNDARY_HPP
+#define HOME_READ_BOUNDARY_HPP
 
 #include <vector>
 #include <string>
@@ -8,10 +8,8 @@
 using Files = std::vector<std::pair<std::string, std::vector<char>>>;
 
 namespace home::interactor {
-class BRAPI Boundary {
+class BRAPI ReadBoundary {
 public:
-  virtual void writeFiles(const Files &) = 0;
-
   virtual Files readFiles(const std::vector<std::string> &) = 0;
 };
 }

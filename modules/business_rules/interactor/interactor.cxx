@@ -23,7 +23,6 @@ void Interactor::tryWriteFile(const std::string &filename, const std::vector<cha
   auto write_stream { creator_write_stream.create(filename) };
   write_stream->write(filedata);
 }
-
 Files Interactor::readFiles(const std::vector<std::string> &input_data) {
   if (input_data.empty() == true) {
     throw std::exception { "input_data is empty!" };
@@ -46,13 +45,11 @@ std::vector<char> Interactor::tryReadFile(const std::string &filename) {
   auto read_stream { creator_read_stream.create(filename) };
   return read_stream->read();
 }
-
 void Interactor::checkFilename(const std::string &filename) {
   if (filename.empty() == true) {
     throwException("Bad filename");
   }
 }
-
 void Interactor::throwException(const std::string &text) {
   throw std::exception { text.c_str() };
 }
