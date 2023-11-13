@@ -9,41 +9,20 @@ TEST_F(InteractorTest, EmptyInputDataInReadFilesExpectThrow) {
 TEST_F(InteractorTest, EmptyInputDataInWriteFilesExpectThrow) {
   ASSERT_THROW(interactor->writeFiles({ }), std::exception);
 }
-TEST_F(InteractorTest, BadInputDataInReadFilesExpectThrow) {
-  home::interactor::FileVariant test_case { };
-  home::interactor::FilenamesVector test_vector { };
-  test_vector.emplace_back("");
-  test_case.emplace<1>(test_vector);
-  ASSERT_THROW(interactor->readFiles({ test_case }), std::exception);
-}
-TEST_F(InteractorTest, BadInputDataInWriteFilesExpectThrow) {
-  home::interactor::FileVariant test_case { };
-  home::interactor::FilenameDataMap test_map { };
-  test_map[""] = { };
-  test_case.emplace<0>(test_map);
-  ASSERT_THROW(interactor->writeFiles({ test_case }), std::exception);
-}
-TEST_F(InteractorTest, CorrectCallFunctionWriteAndCorrectCallFunctionRead1000Files) {
-  std::vector<char> expected { 'f' };
-  home::interactor::FilenamesVector test_filenames { };
-  home::interactor::FilenameDataMap test_map { };
-  for (size_t i { }; i < 1'000; ++i) {
-    test_filenames.emplace_back(createFilename(i));
-  }
+TEST_F(InteractorTestRead, CorrectCallFunctionRead1000Times) {
+  EXPECT_CALL(read_factory, create(AnyOfArray(expected_filenames))).Times(1'000).WillRepeatedly(Return(read_stream));
+  EXPECT_CALL(*read_stream, read).Times(1'000).WillRepeatedly(Return(expected_file_data));
 
-  std::shared_ptr<MockReadStream> read_stream { new MockReadStream { } };
-  std::shared_ptr<MockWriteStream> write_stream { new MockWriteStream { } };
-  for (auto &&filename: test_filenames) {
-    test_map[filename] = expected;
+  auto output_data { interactor->readFiles({ expected_filenames }) };
+  for (auto &&[filename, filedata]: output_data) {
+    ASSERT_THAT(filename, AnyOfArray(expected_filenames));
+    ASSERT_EQ(filedata, expected_file_data);
   }
-
-  home::interactor::FileVariant test_case { test_map };
-  EXPECT_CALL(*write_stream, write(expected)).Times(1'000);
-  EXPECT_CALL(*read_stream, read).Times(1'000);
-  EXPECT_CALL(write_factory, create(testing::_)).Times(1'000).WillRepeatedly(testing::Return(write_stream));
-  EXPECT_CALL(read_factory, create(testing::_)).Times(1'000).WillRepeatedly(testing::Return(read_stream));
-  ASSERT_NO_THROW(interactor->writeFiles({ test_case }));
-  ASSERT_NO_THROW(interactor->readFiles({ test_filenames }));
+}
+TEST_F(InteractorTestWrite, CorrectCallFunctionWrite1000Times) {
+  EXPECT_CALL(*write_stream, write(expected_file_data)).Times(1'000);
+  EXPECT_CALL(write_factory, create(AnyOfArray(expected_filenames))).Times(1'000).WillRepeatedly(Return(write_stream));
+  ASSERT_NO_THROW(interactor->writeFiles({ expected_files }));
 }
 
 #endif

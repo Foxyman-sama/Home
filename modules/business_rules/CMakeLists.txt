@@ -7,26 +7,11 @@ set(CMAKE_CXX_STANDARD 23)
 add_library(${PROJECT_NAME} SHARED 
 	business_rules_api.hpp
 
-	entities/readstream.hpp
-	entities/filereadstream.hpp
-	entities/filereadstream.cxx
-
-	entities/writestream.hpp
-	entities/filewritestream.hpp
-	entities/filewritestream.cxx
-
-	entities/writestreamfactory.hpp 
-	entities/filewritestreamfactory.hpp
-	entities/filewritestreamfactory.cxx
-
-	entities/readstreamfactory.hpp
-	entities/filereadstreamfactory.hpp
-	entities/filereadstreamfactory.cxx
+	entities/entities.hpp
+	entities/entities.cxx
 
 	interactor/boundary.hpp
 	interactor/definitions.hpp
-	interactor/inputdata.hpp
-	interactor/outputdata.hpp
 	interactor/interactor.hpp
 	interactor/interactor.cxx)
 	
