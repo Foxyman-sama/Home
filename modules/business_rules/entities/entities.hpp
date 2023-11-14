@@ -23,6 +23,7 @@ private:
 
 public:
   explicit FileReadStream(const std::string &filename);
+
   std::vector<char> read() override;
 };
 
@@ -54,8 +55,6 @@ public:
   explicit FileWriteStream(const std::string &filename);
 
   void write(const std::vector<char> &data) override;
-
-  bool isOpen() const noexcept;
 };
 
 class BRAPI WriteStreamFactory {

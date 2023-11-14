@@ -17,7 +17,6 @@ class FileWriteStreamCreate
 protected:
   std::string filename;
   bool is_exception_thrown;
-  bool is_stream_open;
   FileWriteStreamFactory factory;
 
 public:
@@ -75,12 +74,10 @@ class FileReadStreamCreate
 protected:
   std::string filename;
   bool is_exception_thrown;
-  bool is_stream_open;
   FileReadStreamFactory factory;
 
 public:
   void SetUp() override {
-
     is_exception_thrown = false;
   }
 
@@ -91,7 +88,6 @@ public:
   virtual void whenStreamIsCreating() {
     try {
       factory.create(filename);
-
     }
     catch (const std::exception &) {
       is_exception_thrown = true;
