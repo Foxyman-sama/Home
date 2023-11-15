@@ -6,8 +6,7 @@
 #include <vector>
 #include "../business_rules_api.hpp"
 
-namespace home::entities {
-namespace read {
+namespace home::entities::read {
 class BRAPI ReadStream {
 public:
     virtual std::vector<char> read() = 0;
@@ -20,6 +19,9 @@ private:
   void tryOpen(const std::string &filename);
 
   void throwException(const std::string &filename);
+
+  size_t readSize();
+  std::vector<char> readData(size_t size);
 
 public:
   explicit FileReadStream(const std::string &filename);
@@ -37,7 +39,7 @@ public:
   std::shared_ptr<ReadStream> create(const std::string &filename) override;
 };
 }
-namespace write {
+namespace home::entities::write {
 class BRAPI WriteStream {
 public:
     virtual void write(const std::vector<char> &) = 0;
@@ -66,7 +68,6 @@ class BRAPI FileWriteStreamFactory
 public:
   std::shared_ptr<WriteStream> create(const std::string &filename) override;
 };
-}
 }
 
 #endif

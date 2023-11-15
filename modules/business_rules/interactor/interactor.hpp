@@ -6,31 +6,16 @@
 #include "write_boundary.hpp"
 
 namespace home::interactor {
-namespace ent = home::entities;
-
 class BRAPI Interactor
-  : public ReadBoundary 
+  : public ReadBoundary
   , public WriteBoundary {
-private:
-
-private:
   std::string directory_path;
-  ent::write::WriteStreamFactory &creator_write_stream;
-  ent::read::ReadStreamFactory &creator_read_stream;
-
-  Files tryReadFiles(const std::vector<std::string> &filenames);
-  std::vector<char> tryReadFile(const std::string &filename);
-
-  void tryWriteFiles(const Files &files);
-  void tryWriteFile(const std::string &filename, const std::vector<char> &filedata);
-
-  void checkFilename(const std::string &filename);
-
-  void throwException(const std::string &text);
+  entities::write::WriteStreamFactory &creator_write_stream;
+  entities::read::ReadStreamFactory &creator_read_stream;
 
 public:
-  explicit Interactor(const std::string &directory_path, ent::write::WriteStreamFactory &creator_write_stream,
-                      ent::read::ReadStreamFactory &creator_read_stream) noexcept;
+  explicit Interactor(const std::string &directory_path, entities::write::WriteStreamFactory &creator_write_stream,
+                      entities::read::ReadStreamFactory &creator_read_stream) noexcept;
 
   void writeFiles(const Files &input_data) override;
 
