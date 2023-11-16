@@ -113,8 +113,9 @@ namespace write_read_process_tests {
   class WriteAndReadTest
     : public Test {
   private:
-    FileWriteStreamFactory write_factory;
-    FileReadStreamFactory read_factory;
+    FileWriteStreamFactory write_factory_mock;
+    FileReadStreamFactory read_factory_mock;
+
     std::string filename;
     std::vector<char> input_data;
     std::vector<char> output_data;
@@ -127,8 +128,8 @@ namespace write_read_process_tests {
 
     void whenStreamsAreWritingAndReading() {
       try {
-        write_factory.create(filename)->write(input_data);
-        output_data = read_factory.create(filename)->read();
+        write_factory_mock.create(filename)->write(input_data);
+        output_data = read_factory_mock.create(filename)->read();
       }
       catch (...) { }
     }
@@ -140,6 +141,11 @@ namespace write_read_process_tests {
 
   TEST_F(WriteAndReadTest, CorrectWriteAndCorrectRead) {
     givenFilenameAndFileSize("1.txt", 1'000);
+    whenStreamsAreWritingAndReading();
+    thenFileShouldContainSameData();
+  }
+  TEST_F(WriteAndReadTest, EmptyWriteAndEmptyRead) {
+    givenFilenameAndFileSize("1.txt", 0);
     whenStreamsAreWritingAndReading();
     thenFileShouldContainSameData();
   }
