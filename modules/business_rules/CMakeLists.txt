@@ -10,6 +10,7 @@ add_library(${PROJECT_NAME} SHARED
 	entities/entities.hpp
 	entities/entities.cxx
 
+	interactor/files.hpp
 	interactor/write_boundary.hpp
 	interactor/read_boundary.hpp
 	interactor/definitions.hpp
