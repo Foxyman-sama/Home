@@ -1,6 +1,7 @@
 #ifndef HOME_WEB_WRITE_CONTROLLER_HPP
 #define HOME_WEB_WRITE_CONTROLLER_HPP
 
+#include "adapters_api.hpp"
 #include "write_controller.hpp"
 #include "deserializer.hpp"
 #include "../business_rules/interactor/write_boundary.hpp"

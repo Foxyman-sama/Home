@@ -7,8 +7,12 @@ configure_file(config.h.in config.h)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 
+find_package(Boost REQUIRED)
+
 add_executable(${PROJECT_NAME} main.cxx)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE
+	${CMAKE_BINARY_DIR}
+	${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC
 	BusinessRules
 	Adapters)
