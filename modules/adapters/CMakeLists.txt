@@ -17,7 +17,9 @@ add_library(${PROJECT_NAME} SHARED
 	
 	serializer.hpp
 	serializerimpl.hpp
-	serializerimpl.cxx)
+	serializerimpl.cxx 
+	binary_manipulation/binary_extractor.hpp
+	binary_manipulation/binary_extractor.cxx)
 
 target_include_directories(${PROJECT_NAME}  
 	INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}

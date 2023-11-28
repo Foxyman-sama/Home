@@ -5,7 +5,8 @@
 #include <string>
 
 namespace home::interactor {
-using Files = std::vector<std::pair<std::string, std::vector<char>>>;
+using File = std::pair<std::string, std::vector<char>>;
+using Files = std::vector<File>;
 }
 
 #endif

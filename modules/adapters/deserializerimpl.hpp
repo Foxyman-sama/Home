@@ -3,6 +3,7 @@
 
 #include "adapters_api.hpp"
 #include "deserializer.hpp"
+#include "binary_manipulation/binary_extractor.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -10,17 +11,18 @@ namespace home::adapters {
 class AdaptersAPI DeserializerImpl
   : public Deserializer {
 private:
-  using ptree = boost::property_tree::ptree; 
+  using JSON = boost::property_tree::ptree; 
+  using File = interactor::File;
+  using Files = interactor::Files;
 
-  std::vector<char> serialized_data;
-  size_t offset;
-  ptree json;
+  BinaryExtractor extractor;
 
-  void setSerializedDataAndClearOffset(const std::vector<char> &serialized_data);
-  void readJSONFromBinary();
-  interactor::Files readFilesFromBinary();
-  std::pair<std::string, std::vector<char>> makeFileFromBinary(auto &&filename);
-  std::vector<char> extractFromBinary();
+  JSON deserializeJSON();
+  std::stringstream extractJSONAndMakeStream();
+
+  Files deserializeFiles(const JSON &json);
+  std::string extractStringFromJSONProperty(auto &&json_property);
+  File extractAndMakeFile(const std::string &filename);
 
 public:
   interactor::Files deserialize(const std::vector<char> &serialized_data) override;
