@@ -86,6 +86,7 @@ TEST_F(WebWriteControllerTest, CorrectWebDataNotThrowException) {
 }
 }
 namespace deserializer_tests {
+
 struct TestData {
   Files expected_data;
   std::vector<char> serialized_data;
@@ -225,5 +226,6 @@ TEST_F(DeserializerTest, testDeserializeEmptySerializeData) {
 }
 
 }
+
 
 #endif

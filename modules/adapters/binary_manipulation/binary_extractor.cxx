@@ -1,6 +1,7 @@
 #include "binary_extractor.hpp"
 
 namespace home::adapters {
+
 std::vector<char> BinaryExtractor::extract() {
   size_t extracted_size { extractSize() };
   std::vector<char> extracted_data { extractData(extracted_size) };
@@ -27,4 +28,5 @@ void BinaryExtractor::setBinaryDataAndResetOffset(const std::vector<char> &binar
   this->binary_data = binary_data;
   this->offset = 0;
 }
+
 }

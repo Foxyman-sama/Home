@@ -1,8 +1,7 @@
 #include "deserializerimpl.hpp"
-#include "deserializerimpl.hpp"
-#include "deserializerimpl.hpp"
 
 namespace home::adapters {
+
 DeserializerImpl::Files DeserializerImpl::deserialize(const std::vector<char> &serialized_data) {
   extractor.setBinaryDataAndResetOffset(serialized_data);
 
@@ -22,7 +21,6 @@ std::stringstream DeserializerImpl::extractJSONAndMakeStream() {
   ss.write(binary_json.data(), binary_json.size());
   return ss;
 }
-
 DeserializerImpl::Files DeserializerImpl::deserializeFiles(const JSON &json) {
   Files files { };
   for (auto &&property: json.get_child("files")) {
