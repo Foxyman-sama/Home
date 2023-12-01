@@ -20,7 +20,9 @@ public:
   std::vector<char> serialize(const interactor::Files &files) override;
 
 private:
-
+  JSON makeJSONContainsFilenames(const Files &files);
+  JSON makeJSONArrayElementFromString(const std::string &str);
+  std::string makeStringFromJSON(const JSON &json);
 };
 
 }
