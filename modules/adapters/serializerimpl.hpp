@@ -21,8 +21,10 @@ public:
 
 private:
   JSON makeJSONContainsFilenames(const Files &files);
-  JSON makeJSONArrayElementFromString(const std::string &str);
+  std::pair<std::string, JSON> makeJSONArrayElementFromString(const std::string &str);
   std::string makeStringFromJSON(const JSON &json);
+  std::vector<char> createBinaryDataFromJSON(const std::string &json);
+  std::vector<char> createBinaryDataFromString(const std::string &str, size_t size_of_str);
 };
 
 }
