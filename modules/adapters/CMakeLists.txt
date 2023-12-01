@@ -7,18 +7,9 @@ set(CMAKE_CXX_STANDARD 23)
 find_package(Boost REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
-	write_controller.hpp
-	web_write_controller.hpp
 	web_write_controller.cxx
-	
-	deserializer.hpp 
-	deserializerimpl.hpp
 	deserializerimpl.cxx
-	
-	serializer.hpp
-	serializerimpl.hpp
 	serializerimpl.cxx 
-	binary_manipulation/binary_extractor.hpp
 	binary_manipulation/binary_extractor.cxx)
 
 target_include_directories(${PROJECT_NAME}  

@@ -24,13 +24,13 @@ std::stringstream DeserializerImpl::extractJSONAndMakeStream() {
 DeserializerImpl::Files DeserializerImpl::deserializeFiles(const JSON &json) {
   Files files { };
   for (auto &&property: json.get_child("files")) {
-    std::string filename { extractStringFromJSONProperty(property) };
+    std::string filename { getStringFromJSONProperty(property) };
     files.emplace_back(extractAndMakeFile(filename));
   }
 
   return files;
 }
-std::string home::adapters::DeserializerImpl::extractStringFromJSONProperty(auto &&json_property) {
+std::string home::adapters::DeserializerImpl::getStringFromJSONProperty(auto &&json_property) {
   return json_property.second.get_value<std::string>();
 }
 DeserializerImpl::File DeserializerImpl::extractAndMakeFile(const std::string &filename) {

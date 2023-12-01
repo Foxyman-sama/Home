@@ -4,6 +4,7 @@
 #include <vector>
 
 namespace home::adapters {
+
 class BinaryExtractor {
 private:
   std::vector<char> binary_data;
@@ -18,6 +19,7 @@ public:
 
   std::vector<char> extract();
 };
+
 }
 
 #endif

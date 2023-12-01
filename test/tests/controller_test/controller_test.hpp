@@ -85,12 +85,8 @@ TEST_F(WebWriteControllerTest, CorrectWebDataNotThrowException) {
   thenShouldNotThrowException();
 }
 }
-namespace deserializer_tests {
+namespace data_generator {
 
-struct TestData {
-  Files expected_data;
-  std::vector<char> serialized_data;
-};
 class BinaryConverter {
 public:
   static std::vector<char> serializeData(const std::string &data, size_t size_of_data) {
@@ -101,13 +97,10 @@ public:
     return result;
   }
 };
-class Generator {
-private:   
-  using ptree = boost::property_tree::ptree;
 
-  std::string generated_json;
-  Files generated_files;
-  std::vector<char> generated_binary_data;
+class GeneratorBase {
+protected:
+  using ptree = boost::property_tree::ptree;
 
   void generateJSON(size_t number_of_files) {
     ptree json;
@@ -143,7 +136,7 @@ private:
     std::vector<char> result { };
     result.append_range(BinaryConverter::serializeData(generated_json, generated_json.size()));
     for (size_t i { }; i < generated_files.size(); ++i) {
-      auto serialized_data { 
+      auto serialized_data {
         BinaryConverter::serializeData(generated_files[i].second.data(), generated_files[i].second.size()) };
       result.append_range(serialized_data);
     }
@@ -151,8 +144,22 @@ private:
     generated_binary_data = result;
   }
 
+  std::string generated_json;
+  Files generated_files;
+  std::vector<char> generated_binary_data;
+};
+
+}
+namespace deserializer_tests {
+
+struct TestData {
+  Files expected_data;
+  std::vector<char> serialized_data;
+};
+class Generator
+  : public data_generator::GeneratorBase {
 public:
-  auto generateExpectedAndSerializedData(size_t number_of_files_in_json, size_t number_of_files, size_t size_of_file) {
+  auto generateExpectedAndDeserializedData(size_t number_of_files_in_json, size_t number_of_files, size_t size_of_file) {
     generateJSON(number_of_files_in_json);
     generateFiles(number_of_files, size_of_file);
     generateBinaryJSONAndFiles();
@@ -160,9 +167,7 @@ public:
   }
 };
 
-Generator generator;
-
-class DeserializerTest
+class TestDeserializer
   : public Test {
 protected:
   DeserializerImpl deserializer;
@@ -173,7 +178,7 @@ protected:
   bool is_threw_exception;
 
 public:
-  void givenExpectedDataAndSerializedData(const TestData &test_data) {
+  void givenExpectedAndSerializedData(const TestData &test_data) {
     this->expected_data = test_data.expected_data;
     this->serialized_data = test_data.serialized_data;
     this->is_threw_exception = false;
@@ -199,33 +204,92 @@ public:
   }
 };
 
-TEST_F(DeserializerTest, testDeserializeCorrectSerializeData) {
-  givenExpectedDataAndSerializedData(generator.generateExpectedAndSerializedData(100, 100, 100));
+Generator generator;
+
+TEST_F(TestDeserializer, testDeserializeCorrectSerializedData) {
+  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(100, 100, 100));
   whenSerializedDataIsDeserializing();
   thenActualFilesShouldBeEqualExpectedFiles();
 }
-TEST_F(DeserializerTest, testDeserializeSerializeDataWithEmptyJson) {
-  givenExpectedDataAndSerializedData(generator.generateExpectedAndSerializedData(0, 100, 100));
+TEST_F(TestDeserializer, testDeserializeSerializedDataWithEmptyJson) {
+  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(0, 100, 100));
   whenSerializedDataIsDeserializing();
   thenActualFilesShouldBeEmpty();
 }
-TEST_F(DeserializerTest, testDeserializeSerializeDataWithEmptyFiles) {
-  givenExpectedDataAndSerializedData(generator.generateExpectedAndSerializedData(100, 100, 0));
+TEST_F(TestDeserializer, testDeserializeSerializedDataWithEmptyFiles) {
+  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(100, 100, 0));
   whenSerializedDataIsDeserializing();
   thenActualFilesShouldBeEqualExpectedFiles();
 }
-TEST_F(DeserializerTest, testDeserializeSerializeDataWithoutFiles) {
-  givenExpectedDataAndSerializedData(generator.generateExpectedAndSerializedData(100, 0, 0));
+TEST_F(TestDeserializer, testDeserializeSerializedDataWithoutFiles) {
+  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(100, 0, 0));
   whenSerializedDataIsDeserializing();
   thenDeserializerShouldThrowException();
 }
-TEST_F(DeserializerTest, testDeserializeEmptySerializeData) {
-  givenExpectedDataAndSerializedData(generator.generateExpectedAndSerializedData(0, 0, 0));
+TEST_F(TestDeserializer, testDeserializeEmptySerializedData) {
+  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(0, 0, 0));
   whenSerializedDataIsDeserializing();
   thenActualFilesShouldBeEmpty();
 }
 
 }
+namespace serializer_tests {
 
+struct TestData {
+  std::vector<char> expected_data;
+  Files deserialized_data;
+};
+
+class Generator
+  : public data_generator::GeneratorBase {
+public:
+  auto generateExpectedAndDeserializedData(size_t number_of_files_in_json, size_t number_of_files, size_t size_of_file) {
+    generateJSON(number_of_files_in_json);
+    generateFiles(number_of_files, size_of_file);
+    generateBinaryJSONAndFiles();
+    return TestData { generated_binary_data, generated_files };
+  }
+};
+
+class TestSerializer
+  : public Test {
+private:
+  SerializerImpl serializer;
+
+  Files deserialized_data;
+  std::vector<char> expected_data;
+  std::vector<char> actual_data;
+  bool is_threw_exception;
+
+public:
+  void givenExpectedAndDeserializedData(const TestData &test_data) {
+    this->expected_data = test_data.expected_data;
+    this->deserialized_data = test_data.deserialized_data;
+    this->is_threw_exception = false;
+  }
+
+  void whenDeserializedDataIsSerializing() {
+    try {
+      actual_data = serializer.serialize(deserialized_data);
+    }
+    catch (const std::exception &) {
+      is_threw_exception = true;
+    }
+  }
+
+  void thenActualShouldBeEqualExpectedData() {
+    ASSERT_EQ(actual_data, expected_data);
+  }
+};
+
+Generator generator;
+
+TEST_F(TestSerializer, testSerializeCorrectDeserializedData) {
+  givenExpectedAndDeserializedData(generator.generateExpectedAndDeserializedData(100, 100, 100));
+  whenDeserializedDataIsSerializing();
+  thenActualShouldBeEqualExpectedData();
+}
+
+}
 
 #endif

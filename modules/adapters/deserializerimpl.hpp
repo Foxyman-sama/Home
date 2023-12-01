@@ -8,25 +8,28 @@
 #include <boost/property_tree/ptree.hpp>
 
 namespace home::adapters {
+
 class AdaptersAPI DeserializerImpl
   : public Deserializer {
-private:
-  using JSON = boost::property_tree::ptree; 
+private:  
+  using JSON = boost::property_tree::ptree;
   using File = interactor::File;
   using Files = interactor::Files;
 
   BinaryExtractor extractor;
+  
+public:
+  interactor::Files deserialize(const std::vector<char> &serialized_data) override;
 
+private:
   JSON deserializeJSON();
   std::stringstream extractJSONAndMakeStream();
 
   Files deserializeFiles(const JSON &json);
-  std::string extractStringFromJSONProperty(auto &&json_property);
+  std::string getStringFromJSONProperty(auto &&json_property);
   File extractAndMakeFile(const std::string &filename);
-
-public:
-  interactor::Files deserialize(const std::vector<char> &serialized_data) override;
 };
+
 }
 
 #endif
