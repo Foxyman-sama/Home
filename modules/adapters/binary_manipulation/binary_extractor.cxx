@@ -3,6 +3,10 @@
 namespace home::adapters {
 
 std::vector<char> BinaryExtractor::extract() {
+  if (offset >= binary_data.size()) {
+    throw std::exception { "Serialized data isn't correct" };
+  }
+
   size_t extracted_size { extractSize() };
   std::vector<char> extracted_data { extractData(extracted_size) };
   return extracted_data;

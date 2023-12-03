@@ -135,10 +135,11 @@ protected:
   void generateBinaryJSONAndFiles() {
     std::vector<char> result { };
     result.append_range(BinaryConverter::serializeData(generated_json, generated_json.size()));
-    for (size_t i { }; i < generated_files.size(); ++i) {
-      auto serialized_data {
-        BinaryConverter::serializeData(generated_files[i].second.data(), generated_files[i].second.size()) };
-      result.append_range(serialized_data);
+    for (auto &&[filename, filedata]: generated_files) {
+      if (filedata.size() > 0) {
+        auto serialized_data { BinaryConverter::serializeData(filedata.data(), filedata.size()) };
+        result.append_range(serialized_data);
+      }
     }
 
     generated_binary_data = result;
@@ -159,7 +160,7 @@ struct TestData {
 class Generator
   : public data_generator::GeneratorBase {
 public:
-  auto generateExpectedAndDeserializedData(size_t number_of_files_in_json, size_t number_of_files, size_t size_of_file) {
+  auto generateExpectedDataAndFiles(size_t number_of_files_in_json, size_t number_of_files, size_t size_of_file) {
     generateJSON(number_of_files_in_json);
     generateFiles(number_of_files, size_of_file);
     generateBinaryJSONAndFiles();
@@ -167,7 +168,7 @@ public:
   }
 };
 
-class TestDeserializer
+class DeserializerTests
   : public Test {
 protected:
   DeserializerImpl deserializer;
@@ -188,12 +189,12 @@ public:
     try {
       actual_data = deserializer.deserialize(serialized_data);
     }
-    catch (const std::exception &) {
+    catch (...) {
       is_threw_exception = true;
     }
   }
 
-  void thenActualFilesShouldBeEqualExpectedFiles() {
+  void thenActualShouldBeEqualExpectedFiles() {
     ASSERT_EQ(actual_data, expected_data);
   }
   void thenActualFilesShouldBeEmpty() {
@@ -206,30 +207,25 @@ public:
 
 Generator generator;
 
-TEST_F(TestDeserializer, testDeserializeCorrectSerializedData) {
-  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(100, 100, 100));
+TEST_F(DeserializerTests, Deserialize_correct_data) {
+  givenExpectedAndSerializedData(generator.generateExpectedDataAndFiles(100, 100, 100));
   whenSerializedDataIsDeserializing();
-  thenActualFilesShouldBeEqualExpectedFiles();
+  thenActualShouldBeEqualExpectedFiles();
 }
-TEST_F(TestDeserializer, testDeserializeSerializedDataWithEmptyJson) {
-  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(0, 100, 100));
+TEST_F(DeserializerTests, Deserialize_data_with_empty_json_works_correctly) {
+  givenExpectedAndSerializedData(generator.generateExpectedDataAndFiles(0, 100, 100));
   whenSerializedDataIsDeserializing();
   thenActualFilesShouldBeEmpty();
 }
-TEST_F(TestDeserializer, testDeserializeSerializedDataWithEmptyFiles) {
-  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(100, 100, 0));
-  whenSerializedDataIsDeserializing();
-  thenActualFilesShouldBeEqualExpectedFiles();
-}
-TEST_F(TestDeserializer, testDeserializeSerializedDataWithoutFiles) {
-  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(100, 0, 0));
+TEST_F(DeserializerTests, Deserialize_data_with_empty_files_throw_exception) {
+  givenExpectedAndSerializedData(generator.generateExpectedDataAndFiles(100, 100, 0));
   whenSerializedDataIsDeserializing();
   thenDeserializerShouldThrowException();
 }
-TEST_F(TestDeserializer, testDeserializeEmptySerializedData) {
-  givenExpectedAndSerializedData(generator.generateExpectedAndDeserializedData(0, 0, 0));
+TEST_F(DeserializerTests, Deserialize_empty_data_throw_exception) {
+  givenExpectedAndSerializedData(generator.generateExpectedDataAndFiles(0, 0, 0));
   whenSerializedDataIsDeserializing();
-  thenActualFilesShouldBeEmpty();
+  thenDeserializerShouldThrowException();
 }
 
 }
@@ -243,7 +239,7 @@ struct TestData {
 class Generator
   : public data_generator::GeneratorBase {
 public:
-  auto generateExpectedAndDeserializedData(size_t number_of_files_in_json, size_t number_of_files, size_t size_of_file) {
+  auto generateExpectedDataAndFiles(size_t number_of_files_in_json, size_t number_of_files, size_t size_of_file) {
     generateJSON(number_of_files_in_json);
     generateFiles(number_of_files, size_of_file);
     generateBinaryJSONAndFiles();
@@ -251,7 +247,7 @@ public:
   }
 };
 
-class TestSerializer
+class SerializerTests
   : public Test {
 private:
   SerializerImpl serializer;
@@ -280,12 +276,25 @@ public:
   void thenActualShouldBeEqualExpectedData() {
     ASSERT_EQ(actual_data, expected_data);
   }
+  void thenActualShouldBeNotEqualExpectedData() {
+    ASSERT_NE(actual_data, expected_data);
+  }
 };
 
 Generator generator;
 
-TEST_F(TestSerializer, testSerializeCorrectDeserializedData) {
-  givenExpectedAndDeserializedData(generator.generateExpectedAndDeserializedData(100, 100, 100));
+TEST_F(SerializerTests, Serialize_correct_files) {
+  givenExpectedAndDeserializedData(generator.generateExpectedDataAndFiles(100, 100, 100));
+  whenDeserializedDataIsSerializing();
+  thenActualShouldBeEqualExpectedData();
+}
+TEST_F(SerializerTests, Serialize_empty_everything_works_correctly) {
+  givenExpectedAndDeserializedData(generator.generateExpectedDataAndFiles(0, 0, 0));
+  whenDeserializedDataIsSerializing();
+  thenActualShouldBeEqualExpectedData();
+}
+TEST_F(SerializerTests, Serialize_empty_files_works_correctly) {
+  givenExpectedAndDeserializedData(generator.generateExpectedDataAndFiles(100, 100, 0));
   whenDeserializedDataIsSerializing();
   thenActualShouldBeEqualExpectedData();
 }

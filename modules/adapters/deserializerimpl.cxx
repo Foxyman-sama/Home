@@ -3,6 +3,10 @@
 namespace home::adapters {
 
 DeserializerImpl::Files DeserializerImpl::deserialize(const std::vector<char> &serialized_data) {
+  if (serialized_data.empty() == true) {
+    throw std::exception { "Serialized data is empty" };
+  }
+
   extractor.setBinaryDataAndResetOffset(serialized_data);
 
   JSON json { deserializeJSON() };

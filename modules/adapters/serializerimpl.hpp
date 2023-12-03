@@ -20,11 +20,12 @@ public:
   std::vector<char> serialize(const interactor::Files &files) override;
 
 private:
-  JSON makeJSONContainsFilenames(const Files &files);
+  JSON makeJSONBasedOnFiles(const Files &files);
+  JSON makeJSONArrayContainsFilenames(const Files &files);
   std::pair<std::string, JSON> makeJSONArrayElementFromString(const std::string &str);
-  std::string makeStringFromJSON(const JSON &json);
-  std::vector<char> createBinaryDataFromJSON(const std::string &json);
-  std::vector<char> createBinaryDataFromString(const std::string &str, size_t size_of_str);
+  std::vector<char> makeBinaryDataFromJSON(const JSON &json);
+  std::vector<char> makeBinaryDataFromString(const std::string &str, size_t size_of_str);
+
 };
 
 }
