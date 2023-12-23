@@ -1,2 +1,0 @@
-add_subdirectory(business_rules)
-add_subdirectory(adapters)

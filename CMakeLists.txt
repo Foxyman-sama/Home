@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required(VERSION 3.20)
-project(HOME)
+project(Home)
 
 option(Testing "Tests" TRUE)
 configure_file(config.h.in config.h)
@@ -13,12 +13,7 @@ add_executable(${PROJECT_NAME} main.cxx)
 target_include_directories(${PROJECT_NAME} PRIVATE
 	${CMAKE_BINARY_DIR}
 	${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC
-	BusinessRules
-	Adapters)
-
-add_subdirectory(modules)
- 
+  
 if (Testing)
 	enable_testing()
 	add_subdirectory(test)
