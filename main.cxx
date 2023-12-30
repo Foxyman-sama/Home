@@ -1,15 +1,10 @@
 ﻿#include "config.h"
 
 #ifdef Testing
-#include "test/tests.hpp"
-#include <filesystem>
 
-int main(int _argc, char **_p_argv) {
-  int return_code{startTests(_argc, _p_argv)};
-  std::cin.ignore();
-  std::cin.get();
-  return return_code;
-}
+#include "test/tests.hpp"
+
+int main(int argc, char **argv) { return startTests(argc, argv); }
 
 #else
 
