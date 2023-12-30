@@ -15,44 +15,55 @@ using namespace testing;
 
 class Parser {
  private:
+  size_t offset;
+  static constexpr std::string_view name_matcher_beg { "filename=\"" };
+  static constexpr std::string_view name_matcher_end { "\"" };
+  static constexpr std::string_view data_matcher_beg { "\r\n\r\n" };
   static constexpr std::string_view delim { "------WebKitFormBoundary" };
 
  public:
-  std::unordered_map<std::string, std::vector<char>> parse(const std::string &data) {
+  std::unordered_map<std::string, std::vector<char>> parse(const std::string &str) {
     std::unordered_map<std::string, std::vector<char>> result;
-    for (auto it { data.find(delim) }; it != std::string::npos; it = data.find(delim, it + delim.size())) {
-      if (isLastBoundary(data, it) == true) {
-        break;
-      }
-
-      auto filename { findAndExtractFilename(data, it) };
-      auto binary_data { findAndExtractData(data, it) };
-      result[filename] = binary_data;
+    try {
+      result = tryParse(str);
+    } catch (...) {
+      throw;
     }
 
     return result;
   }
 
  private:
-  bool isLastBoundary(const std::string &src, size_t offset) {
-    return src.find(delim, offset + 1) == std::string::npos;
-  }
-  std::string findAndExtractFilename(const std::string &src, size_t offset) {
-    constexpr std::string_view matcher { "filename=\"" };
-    auto start { src.find(matcher, offset) + matcher.length() };
-    auto end { src.find("\"", start) };
-    auto result { src.substr(start, end - start) };
-    return result;
-  }
+  std::unordered_map<std::string, std::vector<char>> tryParse(const std::string &str) {
+    std::unordered_map<std::string, std::vector<char>> result;
+    for (offset = str.find(delim); isLastBoundary(str) == false; offset = str.find(delim, offset + delim.size())) {
+      result.emplace(parseFile(str));
+    }
 
-  std::vector<char> findAndExtractData(const std::string &src, size_t offset) {
-    constexpr std::string_view matcher { "\r\n\r\n" };
-    auto start { src.find(matcher, offset) + matcher.length() };
-    auto end { src.find(delim, start) };
-    auto length_without_ending_character { end - start - 1 };
-    auto temp { src.substr(start, length_without_ending_character) };
-    auto result { stringToVector(temp) };
     return result;
+  }
+  bool isLastBoundary(const std::string &src) { return src.find(delim, offset + 1) == std::string::npos; }
+  std::pair<std::string, std::vector<char>> parseFile(const std::string &str) {
+    auto filename { parseFilename(str) };
+    auto data { parseData(str) };
+    return { filename, data };
+  }
+  std::string parseFilename(const std::string &str) {
+    auto [pos_beg, pos_end] { find(str, name_matcher_beg, name_matcher_end) };
+    return extract(str, pos_beg, pos_end);
+  }
+  std::pair<size_t, size_t> find(const std::string &str, const std::string_view &start, const std::string_view &end) {
+    auto pos_beg { str.find(start, offset) + start.length() };
+    auto pos_end { str.find(end, pos_beg) };
+    return { pos_beg, pos_end };
+  }
+  std::string extract(const std::string &str, size_t beg, size_t end) { return str.substr(beg, end - beg); }
+
+  std::vector<char> parseData(const std::string &str) {
+    auto [pos_beg, pos_end] { find(str, data_matcher_beg, delim) };
+    auto pos_end_without_ending_character { pos_end - 1 };
+    auto data { extract(str, pos_beg, pos_end_without_ending_character) };
+    return stringToVector(data);
   }
   std::vector<char> stringToVector(const std::string &src) {
     std::vector<char> result;
