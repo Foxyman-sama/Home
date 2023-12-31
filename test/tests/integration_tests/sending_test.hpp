@@ -95,7 +95,7 @@ class SendingTest : public Test {
   }
 };
 
-TEST_F(SendingTest, Sending) {
+TEST_F(SendingTest, Sending_web_data_and_using_html_parser) {
   HTMLParser parser;
   ControllerImpl controller { parser };
   auto actual_result { controller.save(generated_data) };
