@@ -9,8 +9,14 @@ set(CMAKE_CXX_STANDARD 23)
 
 find_package(Boost REQUIRED)
 
-add_executable(${PROJECT_NAME} main.cxx)
+file(GLOB_RECURSE src modules/*.cxx)
+
+add_executable(${PROJECT_NAME} 
+	main.cxx
+	${src})
 target_include_directories(${PROJECT_NAME} PRIVATE
+	modules/core
+	modules/webserver
 	${CMAKE_BINARY_DIR}
 	${Boost_INCLUDE_DIRS})
   
