@@ -4,20 +4,15 @@ project(Tests)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 
-file(GLOB_RECURSE files tests/*.hpp)
-
 find_package(GTest REQUIRED)
+find_package(Boost REQUIRED)
 
-add_library(${PROJECT_NAME}
-	tests.cxx
-	tests.hpp
-	${files}
-)
+add_library(${PROJECT_NAME} tests.cxx)
 target_include_directories(${PROJECT_NAME} PUBLIC 
 	${GTEST_INCLUDE_DIRS}
-	${CMAKE_SOURCE_DIR}
-)
+	${Boost_INCLUDE_DIRS}
+	${CMAKE_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC
 	GTest::gmock_main
 	${GTEST_LIBRARIES}
-)
+	${Boost_LIBRARIES})
