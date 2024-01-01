@@ -2,13 +2,11 @@
 #define PARSER_HPP
 
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-namespace home::controller {
+#include "hash_table.hpp"
 
-template <typename Key, typename Value>
-using HashTable = std::unordered_map<Key, Value>;
+namespace home::controller {
 
 class Parser {
  public:

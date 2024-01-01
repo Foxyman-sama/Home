@@ -6,7 +6,7 @@
 
 #include <fstream>
 
-#include "modules/core/controller.hpp"
+#include "modules/core/controller_impl.hpp"
 #include "modules/webserver/htmlparser.hpp"
 
 using namespace testing;
