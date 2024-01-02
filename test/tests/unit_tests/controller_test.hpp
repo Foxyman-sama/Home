@@ -40,7 +40,7 @@ class ControllerTest : public Test {
   void thenControllerShouldNotThrowException() { ASSERT_EQ(is_threw_exception, false); }
 };
 
-TEST_F(ControllerTest, Call_save_call_parse_one_time) {
+TEST_F(ControllerTest, Call_parse_one_time) {
   givenNumberOfCallOfParse(1);
   whenControllerIsSaving();
   thenControllerShouldNotThrowException();
