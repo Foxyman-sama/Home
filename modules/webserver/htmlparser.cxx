@@ -10,6 +10,10 @@ HashTable<std::string, std::vector<char>> HTMLParser::parse(const std::string& s
   }
 }
 HashTable<std::string, std::vector<char>> HTMLParser::tryParse(const std::string& str) {
+  if (str.empty() == true) {
+    throw std::runtime_error { "The data are empty." };
+  }
+
   HashTable<std::string, std::vector<char>> result;
   for (offset = str.find(delim); isLastBoundary(str) == false; offset = str.find(delim, offset + delim.size())) {
     result.emplace(parseFile(str));
@@ -17,7 +21,11 @@ HashTable<std::string, std::vector<char>> HTMLParser::tryParse(const std::string
 
   return result;
 }
-bool HTMLParser::isLastBoundary(const std::string& src) { return src.find(delim, offset + 1) == std::string::npos; }
+bool HTMLParser::isLastBoundary(const std::string& src) {
+  auto pos_for_search_next_delim { offset + 1 };
+  return src.find(delim, pos_for_search_next_delim) == std::string::npos;
+}
+
 std::pair<std::string, std::vector<char>> HTMLParser::parseFile(const std::string& str) {
   auto filename { parseFilename(str) };
   auto data { parseData(str) };

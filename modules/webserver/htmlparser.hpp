@@ -1,6 +1,8 @@
 #ifndef HTMLPARSER_HPP
 #define HTMLPARSER_HPP
 
+#include <stdexcept>
+
 #include "../core/parser.hpp"
 
 namespace home::webserver {
