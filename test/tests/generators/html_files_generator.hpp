@@ -1,8 +1,12 @@
 #ifndef HTML_FILES_GENERATOR_HPP
 #define HTML_FILES_GENERATOR_HPP
 
+#include <format>
+#include <limits>
+#include <random>
 #include <string>
-#include <tuple>
+
+#include "modules/core/hash_table.hpp"
 
 struct GeneratedParams {
   std::string data;
@@ -10,7 +14,7 @@ struct GeneratedParams {
   size_t size_of_files;
 };
 
-class HTMLFilesGenerator {
+class HTMLGenerator {
  private:
   GeneratedParams generated;
 
@@ -36,8 +40,11 @@ class HTMLFilesGenerator {
     generated.data.append(1, '\n');
   }
 
-  GeneratedParams getGeneratedData() {
-    appendBoundary();
+  GeneratedParams getGeneratedParamsAndIfNotEmptyAddLastBounary() {
+    if (generated.data.empty() == false) {
+      appendBoundary();
+    }
+
     return generated;
   }
 
@@ -60,5 +67,30 @@ class HTMLFilesGenerator {
     generated.data.append("\r\n\r\n");
   }
 };
+
+static std::pair<GeneratedParams, HashTable<std::string, std::vector<char>>> fastGenerate(size_t number_of_files,
+                                                                                          size_t max_size) {
+  std::mt19937 seed { std::random_device {}() };
+  std::uniform_int_distribution<size_t> sizes { 1, max_size };
+  std::uniform_int_distribution<char> chars {
+    std::numeric_limits<char>::min(),
+    std::numeric_limits<char>::max(),
+  };
+  HTMLGenerator generator;
+  HashTable<std::string, std::vector<char>> result;
+  for (auto i { 0 }; i < number_of_files; ++i) {
+    auto size { sizes(seed) };
+    std::vector<char> data(size);
+    for (auto &&el : data) {
+      el = chars(seed);
+    }
+
+    auto filename { std::format("{}.bin", i) };
+    result.emplace(filename, data);
+    generator.appendFile(std::format("{}.bin", i), data);
+  }
+
+  return { generator.getGeneratedParamsAndIfNotEmptyAddLastBounary(), result };
+}
 
 #endif

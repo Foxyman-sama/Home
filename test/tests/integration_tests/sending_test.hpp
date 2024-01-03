@@ -17,7 +17,7 @@ using namespace webserver;
 class SendingTest : public Test {
  private:
   Reader reader;
-  HTMLFilesGenerator generator;
+  HTMLGenerator generator;
 
  public:
   std::string expected_data;
@@ -35,7 +35,7 @@ class SendingTest : public Test {
       }
     }
 
-    auto [data, number_of_files, size_of_files] { generator.getGeneratedData() };
+    auto [data, number_of_files, size_of_files] { generator.getGeneratedParamsAndIfNotEmptyAddLastBounary() };
     expected_data = data;
     expected_number_of_files = number_of_files;
     expected_size_of_files = size_of_files;
@@ -53,7 +53,7 @@ class SendingTest : public Test {
 
   void appendFile(Reader &reader) {
     auto filename { reader.readString() };
-    auto binary_data { reader.readFile(filename) };
+    auto binary_data { reader.createStreamAndReadFile(filename) };
     expected_size_of_files += binary_data.size();
     generator.appendFile(filename, binary_data);
   }
@@ -63,8 +63,8 @@ TEST_F(SendingTest, Sending_web_data_and_using_html_parser) {
   HTMLParser parser;
   ControllerImpl controller { parser };
   auto actual_result { controller.save(expected_data) };
-  ASSERT_EQ(std::stoi(actual_result["number_of_files"]), expected_number_of_files);
-  ASSERT_EQ(std::stoi(actual_result["size_of_files"]), expected_size_of_files);
+  ASSERT_EQ(std::stoi(actual_result.at("number_of_files")), expected_number_of_files);
+  ASSERT_EQ(std::stoi(actual_result.at("size_of_files")), expected_size_of_files);
 }
 
 #endif

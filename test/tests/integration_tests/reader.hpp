@@ -15,6 +15,7 @@ class Reader {
   }
 
   bool isOpen() { return fin.is_open(); }
+
   bool isEndOfFile() { return fin.peek() == EOF; };
 
   std::string readString() {
@@ -22,13 +23,9 @@ class Reader {
     fin >> result;
     return result;
   }
-  int readNumber() {
-    std::string result;
-    fin >> result;
-    return std::stoi(result);
-  }
+  int readNumber() { return std::stoi(readString()); }
 
-  std::vector<char> readFile(const std::string &filename) {
+  std::vector<char> createStreamAndReadFile(const std::string &filename) {
     std::ifstream file_stream { folder + filename, std::ios_base::binary };
     file_stream.seekg(0, file_stream.end);
 
