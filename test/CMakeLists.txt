@@ -9,6 +9,7 @@ find_package(Boost REQUIRED)
 
 add_library(${PROJECT_NAME} tests.cxx)
 target_include_directories(${PROJECT_NAME} PUBLIC 
+	tests
 	${GTEST_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${CMAKE_SOURCE_DIR})
