@@ -35,37 +35,55 @@ std::array<std::uint8_t, 256> constexpr decode_table {
 };
 
 class Encoder {
+ private:
+  static constexpr size_t tripplet_size { 3 };
+  std::vector<char> encoded;
+  size_t data_size;
+  size_t number_of_full_tripplets;
+
  public:
   std::vector<char> encode(const std::vector<char> &data) {
-    const auto size { data.size() };
-    const auto full_tripplets { size / 3 };
-    std::vector<char> result;
-    result.reserve((full_tripplets + 2) * 4);
-    for (auto i { 0 }; i < full_tripplets; ++i) {
-      auto pos_triplet_start { std::begin(data) + i * 3 };
-      auto pos_triplet_end { pos_triplet_start + 3 };
-      std::vector<char> triplet { pos_triplet_start, pos_triplet_end };
-      const auto base64_chars { encodeTriplet(triplet[0], triplet[1], triplet[2]) };
-      std::copy(std::begin(base64_chars), std::end(base64_chars), std::back_inserter(result));
+    setUp(data);
+    for (auto i { 0 }; i < number_of_full_tripplets; ++i) {
+      encodeTripletByIndex(data, i);
     }
 
-    if (const auto remaining_chars { size - full_tripplets * 3 }; remaining_chars == 2) {
-      std::vector<char> triplet { std::begin(data) + size - 2, std::end(data) };
-      const auto base64_chars { encodeTriplet(triplet[0], triplet[1], 0) };
-      std::copy_n(std::begin(base64_chars), 3, std::back_inserter(result));
-      result.emplace_back('=');
+    if (const auto remaining_chars { data_size - number_of_full_tripplets * tripplet_size }; remaining_chars == 2) {
+      std::vector<char> triplet { std::begin(data) + data_size - remaining_chars, std::end(data) };
+      const auto base64_chars { encodeTriplet(triplet[0], triplet[1]) };
+      copyAndAppendPaddingIfSizeLessThan4(base64_chars, 3);
     } else if (remaining_chars == 1) {
-      const auto base64_chars { encodeTriplet(data.back(), 0, 0) };
-      std::copy_n(std::begin(base64_chars), 2, std::back_inserter(result));
-      result.emplace_back('=');
-      result.emplace_back('=');
+      std::vector<char> triplet { std::begin(data) + data_size - remaining_chars, std::end(data) };
+      const auto base64_chars { encodeTriplet(data.back()) };
+      copyAndAppendPaddingIfSizeLessThan4(base64_chars, 2);
     }
 
-    return result;
+    return encoded;
   }
 
  private:
-  std::array<char, 4> encodeTriplet(std::uint8_t a, std::uint8_t b, std::uint8_t c) {
+  void setUp(const std::vector<char> &data) {
+    data_size = data.size();
+    number_of_full_tripplets = data_size / 3;
+    encoded.clear();
+    encoded.reserve((number_of_full_tripplets + 2) * 4);
+  }
+
+  void encodeTripletByIndex(const std::vector<char> &data, int index) {
+    const auto current_tripplet { index * tripplet_size };
+    const auto start { std::begin(data) + current_tripplet };
+    std::vector<char> tripplet { start, start + tripplet_size };
+    const auto base64_chars { encodeTriplet(tripplet[0], tripplet[1], tripplet[2]) };
+    copyAndAppendPaddingIfSizeLessThan4(base64_chars, 4);
+  }
+  void copyAndAppendPaddingIfSizeLessThan4(const std::array<char, 4> &encoded_tripplet, size_t size) {
+    std::copy_n(std::begin(encoded_tripplet), size, std::back_inserter(encoded));
+    for (auto i { size }; i < 4; ++i) {
+      encoded.emplace_back('=');
+    }
+  }
+
+  std::array<char, 4> encodeTriplet(std::uint8_t a, std::uint8_t b = 0, std::uint8_t c = 0) {
     const auto concat_bits { static_cast<std::uint32_t>((a << 16) | (b << 8) | c) };
     const auto b64_char1 { encode_table[concat_bits >> 18 & 63] };
     const auto b64_char2 { encode_table[concat_bits >> 12 & 63] };
