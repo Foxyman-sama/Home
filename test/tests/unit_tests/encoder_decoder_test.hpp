@@ -48,14 +48,11 @@ class Encoder {
       encodeTripletByIndex(data, i);
     }
 
-    if (const auto remaining_chars { data_size - number_of_full_tripplets * tripplet_size }; remaining_chars == 2) {
-      std::vector<char> triplet { std::begin(data) + data_size - remaining_chars, std::end(data) };
-      const auto base64_chars { encodeTriplet(triplet[0], triplet[1]) };
-      copyAndAppendPaddingIfSizeLessThan4(base64_chars, 3);
+    const auto remaining_chars { data_size - number_of_full_tripplets * tripplet_size };
+    if (remaining_chars == 2) {
+      encodeTwoRemainingChars(data);
     } else if (remaining_chars == 1) {
-      std::vector<char> triplet { std::begin(data) + data_size - remaining_chars, std::end(data) };
-      const auto base64_chars { encodeTriplet(data.back()) };
-      copyAndAppendPaddingIfSizeLessThan4(base64_chars, 2);
+      encodeOneRemainingChars(data);
     }
 
     return encoded;
@@ -71,16 +68,34 @@ class Encoder {
 
   void encodeTripletByIndex(const std::vector<char> &data, int index) {
     const auto current_tripplet { index * tripplet_size };
-    const auto start { std::begin(data) + current_tripplet };
-    std::vector<char> tripplet { start, start + tripplet_size };
+    const auto tripplet { makeTripplet(data, current_tripplet, tripplet_size) };
     const auto base64_chars { encodeTriplet(tripplet[0], tripplet[1], tripplet[2]) };
-    copyAndAppendPaddingIfSizeLessThan4(base64_chars, 4);
+    copy(base64_chars, 4);
   }
-  void copyAndAppendPaddingIfSizeLessThan4(const std::array<char, 4> &encoded_tripplet, size_t size) {
+  std::vector<char> makeTripplet(const std::vector<char> &data, size_t offset, size_t end_offset) {
+    const auto start { std::begin(data) + offset };
+    return { start, start + end_offset };
+  }
+  void copy(const std::array<char, 4> &encoded_tripplet, size_t size) {
     std::copy_n(std::begin(encoded_tripplet), size, std::back_inserter(encoded));
-    for (auto i { size }; i < 4; ++i) {
+  }
+  void appendPadding(size_t number_of_padding) {
+    for (auto i { 0 }; i < number_of_padding; ++i) {
       encoded.emplace_back('=');
     }
+  }
+
+  void encodeTwoRemainingChars(const std::vector<char> &data) {
+    const auto tripplet { makeTripplet(data, data_size - 2, 2) };
+    const auto base64_chars { encodeTriplet(tripplet[0], tripplet[1]) };
+    copy(base64_chars, 3);
+    appendPadding(1);
+  }
+  void encodeOneRemainingChars(const std::vector<char> &data) {
+    const auto tripplet { makeTripplet(data, data_size - 1, 1) };
+    const auto base64_chars { encodeTriplet(tripplet[0], tripplet[1]) };
+    copy(base64_chars, 2);
+    appendPadding(2);
   }
 
   std::array<char, 4> encodeTriplet(std::uint8_t a, std::uint8_t b = 0, std::uint8_t c = 0) {
