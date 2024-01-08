@@ -42,13 +42,15 @@ class Encoder {
     std::vector<char> result;
     result.reserve((full_tripplets + 2) * 4);
     for (auto i { 0 }; i < full_tripplets; ++i) {
-      std::vector<char> triplet { std::begin(data) + i * 3, (std::begin(data) + i * 3) + 3 };
+      auto pos_triplet_start { std::begin(data) + i * 3 };
+      auto pos_triplet_end { pos_triplet_start + 3 };
+      std::vector<char> triplet { pos_triplet_start, pos_triplet_end };
       const auto base64_chars { encodeTriplet(triplet[0], triplet[1], triplet[2]) };
       std::copy(std::begin(base64_chars), std::end(base64_chars), std::back_inserter(result));
     }
 
     if (const auto remaining_chars { size - full_tripplets * 3 }; remaining_chars == 2) {
-      std::vector<char> triplet { std::end(data) - 1, std::end(data) };
+      std::vector<char> triplet { std::begin(data) + size - 2, std::end(data) };
       const auto base64_chars { encodeTriplet(triplet[0], triplet[1], 0) };
       std::copy_n(std::begin(base64_chars), 3, std::back_inserter(result));
       result.emplace_back('=');
@@ -64,11 +66,11 @@ class Encoder {
 
  private:
   std::array<char, 4> encodeTriplet(std::uint8_t a, std::uint8_t b, std::uint8_t c) {
-    const std::uint32_t concat_bits { (a << 16) | (b << 8) | c };
-    const auto b64_char1 { encode_table[(concat_bits >> 18) & 0b0011'1111] };
-    const auto b64_char2 { encode_table[(concat_bits >> 12) & 0b0011'1111] };
-    const auto b64_char3 { encode_table[(concat_bits >> 6) & 0b0011'1111] };
-    const auto b64_char4 { encode_table[concat_bits & 0b0011'1111] };
+    const auto concat_bits { static_cast<std::uint32_t>((a << 16) | (b << 8) | c) };
+    const auto b64_char1 { encode_table[concat_bits >> 18 & 63] };
+    const auto b64_char2 { encode_table[concat_bits >> 12 & 63] };
+    const auto b64_char3 { encode_table[concat_bits >> 6 & 63] };
+    const auto b64_char4 { encode_table[concat_bits & 63] };
     return { b64_char1, b64_char2, b64_char3, b64_char4 };
   }
 };
@@ -87,7 +89,8 @@ class Decoder {
       std::copy(std::begin(bytes), std::end(bytes), std::back_inserter(result));
     }
 
-    if (std::vector<char> last_quad { std::begin(data) + full_quadruples * 4, std::end(data) }; last_quad.size() == 0) {
+    if (std::vector<char> last_quad { std::begin(unpadded_encoded) + full_quadruples * 4, std::end(unpadded_encoded) };
+        last_quad.size() == 0) {
       return result;
     } else if ((last_quad.size() == 2) || (last_quad[2] == '=')) {
       const auto bytes { decodeQuad(last_quad[0], last_quad[1], 'A', 'A') };
@@ -102,11 +105,11 @@ class Decoder {
 
  private:
   std::array<std::uint8_t, 3> decodeQuad(char a, char b, char c, char d) {
-    const std::uint32_t concat_bytes { (decode_table[a] << 18) | (decode_table[b] << 12) | (decode_table[c] << 6) |
-                                       decode_table[d] };
-    const std::uint8_t byte1 { (concat_bytes >> 16) & 0b1111'1111 };
-    const std::uint8_t byte2 { (concat_bytes >> 8) & 0b1111'1111 };
-    const std::uint8_t byte3 { concat_bytes & 0b1111'1111 };
+    const auto concat_bytes { static_cast<std::uint32_t>((decode_table[a] << 18) | (decode_table[b] << 12) |
+                                                         (decode_table[c] << 6) | decode_table[d]) };
+    const auto byte1 { static_cast<std::uint8_t>(concat_bytes >> 16 & 255) };
+    const auto byte2 { static_cast<std::uint8_t>(concat_bytes >> 8 & 255) };
+    const auto byte3 { static_cast<std::uint8_t>(concat_bytes & 255) };
     return { byte1, byte2, byte3 };
   }
 };
@@ -116,15 +119,16 @@ class EncoderDecoderTest : public Test {};
 TEST_F(EncoderDecoderTest, test) {
   Encoder encoder;
   Decoder decoder;
-  std::vector<char> actual { 'I', 'L', 'Y' };
+  std::vector<char> actual { 'I', 'L' };
   auto encoded { encoder.encode(actual) };
   auto decoded { decoder.decode(encoded) };
   ASSERT_EQ(decoded, actual);
 }
+
 TEST_F(EncoderDecoderTest, Encoding_and_decoding_100_files_with_max_size_1000_are_correct) {
   Encoder encoder;
   Decoder decoder;
-  auto files { generateFiles(100, 1000) };
+  auto files { generateFiles(10'000, 10'000) };
   for (auto &&[filename, filedata] : files) {
     auto encoded { encoder.encode(filedata) };
     auto decoded { decoder.decode(encoded) };
