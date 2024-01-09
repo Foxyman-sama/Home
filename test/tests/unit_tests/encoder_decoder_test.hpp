@@ -104,7 +104,7 @@ class Encoder : public Container {
     if (remaining_chars == 2) {
       encodeTwoRemainingChars(data);
     } else if (remaining_chars == 1) {
-      encodeOneRemainingChars(data);
+      encodeOneRemainingChar(data);
     }
   }
   void encodeTwoRemainingChars(const std::vector<char> &data) {
@@ -114,7 +114,7 @@ class Encoder : public Container {
     append(encoded, 3);
     appendPadding(1);
   }
-  void encodeOneRemainingChars(const std::vector<char> &data) {
+  void encodeOneRemainingChar(const std::vector<char> &data) {
     const auto current_index { data_size - 1 };
     const auto tripplet { extract(data, current_index, 1) };
     const auto encoded { encodeTripplet(tripplet[0]) };
@@ -137,45 +137,31 @@ class Decoder : public Container {
  public:
   std::vector<char> decode(const std::vector<char> &data) {
     setUp(data);
-    for (auto i { 0 }; i < number_of_quadruples; ++i) {
-      const auto quadruple { extract(data, i * 4, quadruple_size) };
-      const auto bytes { decodeQuad(quadruple[0], quadruple[1], quadruple[2], quadruple[3]) };
-      append(bytes, 3);
-    }
-
-    std::vector<char> last_quad { std::begin(unpadded_encoded) + number_of_quadruples * 4, std::end(unpadded_encoded) };
-    if (last_quad.size() == 0) {
-      return container;
-    } else if (last_quad.size() == 2) {
-      const auto bytes { decodeQuad(last_quad[0], last_quad[1], 'A', 'A') };
-      append(bytes, 1);
-    } else {
-      const auto bytes { decodeQuad(last_quad[0], last_quad[1], last_quad[2], 'A') };
-      append(bytes, 2);
-    }
-
+    decodeFullQuadruples();
+    decodeRemainingCharsIfExist();
     return container;
   }
 
  private:
   void setUp(const std::vector<char> &data) noexcept override {
     unpadded_encoded = { std::begin(data), std::find(std::begin(data), std::end(data), '=') };
+    data_size = unpadded_encoded.size();
     number_of_quadruples = unpadded_encoded.size() / quadruple_size;
     container.clear();
     container.reserve(((number_of_quadruples + 2) * 3) / quadruple_size);
   }
 
-  std::array<std::uint8_t, 3> decodeQuadruplesByIndex(const std::vector<char> &data, size_t index) {
+  void decodeFullQuadruples() {
+    for (auto i { 0 }; i < number_of_quadruples; ++i) {
+      decodeQuadruplesByIndex(i);
+    }
+  }
+  void decodeQuadruplesByIndex(size_t index) {
     const auto current_index { index * quadruple_size };
-    const auto quadruple { extract(data, current_index, quadruple_size) };
+    const auto quadruple { extract(unpadded_encoded, current_index, quadruple_size) };
     const auto bytes { decodeQuad(quadruple[0], quadruple[1], quadruple[2], quadruple[3]) };
     append(bytes, 3);
   }
-  std::vector<char> extractQuadruple(const std::vector<char> &data, size_t start, size_t amount) {
-    const auto pos_of_quadruple { std::begin(data) + start };
-    return { pos_of_quadruple, pos_of_quadruple + amount };
-  }
-
   std::array<std::uint8_t, 3> decodeQuad(char a, char b, char c, char d) {
     const auto concat_bytes { static_cast<std::uint32_t>((decode_table[a] << 18) | (decode_table[b] << 12) |
                                                          (decode_table[c] << 6) | decode_table[d]) };
@@ -184,6 +170,24 @@ class Decoder : public Container {
     const auto byte3 { static_cast<std::uint8_t>(concat_bytes & 255) };
     return { byte1, byte2, byte3 };
   }
+
+  void decodeRemainingCharsIfExist() {
+    const auto remaining_chars { data_size - number_of_quadruples * quadruple_size };
+    const auto last_quadruple { extract(unpadded_encoded, number_of_quadruples * quadruple_size, remaining_chars) };
+    if (last_quadruple.size() == 2) {
+      decodeTwoRemainingChars(last_quadruple);
+    } else if (last_quadruple.size() == 3) {
+      decodeThreeRemainingChars(last_quadruple);
+    }
+  }
+  void decodeTwoRemainingChars(const std::vector<char> &last_quadruple) {
+    const auto bytes { decodeQuad(last_quadruple[0], last_quadruple[1], 'A', 'A') };
+    append(bytes, 1);
+  }
+  void decodeThreeRemainingChars(const std::vector<char> &last_quadruple) {
+    const auto bytes { decodeQuad(last_quadruple[0], last_quadruple[1], last_quadruple[2], 'A') };
+    append(bytes, 2);
+  }
 };
 
 class EncoderDecoderTest : public Test {};
@@ -191,7 +195,7 @@ class EncoderDecoderTest : public Test {};
 TEST_F(EncoderDecoderTest, Encoding_and_decoding_100_files_with_max_size_1000_are_correct) {
   Encoder encoder;
   Decoder decoder;
-  auto files { generateFiles(10'000, 10'000) };
+  auto files { generateFiles(20'000, 10'000) };
   for (auto &&[filename, filedata] : files) {
     auto encoded { encoder.encode(filedata) };
     auto decoded { decoder.decode(encoded) };
