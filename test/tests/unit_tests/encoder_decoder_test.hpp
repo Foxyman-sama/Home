@@ -12,7 +12,7 @@ using namespace testing;
 using namespace home;
 using namespace controller;
 
-std::array<char, 64> constexpr encode_table { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+constexpr std::array<char, 64> encode_table { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                                               'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
                                               'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
                                               'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -34,71 +34,63 @@ std::array<std::uint8_t, 256> constexpr decode_table {
   0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64
 };
 
-class Encoder {
+class Container {
+ protected:
+  std::vector<char> container;
+  size_t data_size;
+
+  virtual void setUp(const std::vector<char> &data) noexcept = 0;
+
+  template <typename T, size_t size>
+  void append(const std::array<T, size> &src, size_t amount) {
+    std::copy_n(std::begin(src), amount, std::back_inserter(container));
+  }
+
+  template <typename T>
+  std::vector<T> extract(const std::vector<T> &data, size_t start, size_t amount) {
+    const auto pos_of_extracted { std::begin(data) + start };
+    return { pos_of_extracted, pos_of_extracted + amount };
+  }
+};
+class Encoder : public Container {
  private:
   static constexpr size_t tripplet_size { 3 };
-  std::vector<char> encoded;
-  size_t data_size;
-  size_t number_of_full_tripplets;
+  size_t number_of_tripplets;
 
  public:
   std::vector<char> encode(const std::vector<char> &data) {
-    setUp(data);
-    for (auto i { 0 }; i < number_of_full_tripplets; ++i) {
-      encodeTripletByIndex(data, i);
+    try {
+      return tryEncode(data);
+    } catch (...) {
+      throw;
     }
-
-    const auto remaining_chars { data_size - number_of_full_tripplets * tripplet_size };
-    if (remaining_chars == 2) {
-      encodeTwoRemainingChars(data);
-    } else if (remaining_chars == 1) {
-      encodeOneRemainingChars(data);
-    }
-
-    return encoded;
   }
 
  private:
-  void setUp(const std::vector<char> &data) {
+  std::vector<char> tryEncode(const std::vector<char> &data) {
+    setUp(data);
+    encodeFullTripplets(data);
+    encodeRemainingCharsIfExist(data);
+    return container;
+  }
+  void setUp(const std::vector<char> &data) noexcept override {
     data_size = data.size();
-    number_of_full_tripplets = data_size / 3;
-    encoded.clear();
-    encoded.reserve((number_of_full_tripplets + 2) * 4);
+    number_of_tripplets = data_size / 3;
+    container.clear();
+    container.reserve((number_of_tripplets + 2) * 4);
   }
-
-  void encodeTripletByIndex(const std::vector<char> &data, int index) {
-    const auto current_tripplet { index * tripplet_size };
-    const auto tripplet { makeTripplet(data, current_tripplet, tripplet_size) };
-    const auto base64_chars { encodeTriplet(tripplet[0], tripplet[1], tripplet[2]) };
-    copy(base64_chars, 4);
-  }
-  std::vector<char> makeTripplet(const std::vector<char> &data, size_t offset, size_t end_offset) {
-    const auto start { std::begin(data) + offset };
-    return { start, start + end_offset };
-  }
-  void copy(const std::array<char, 4> &encoded_tripplet, size_t size) {
-    std::copy_n(std::begin(encoded_tripplet), size, std::back_inserter(encoded));
-  }
-  void appendPadding(size_t number_of_padding) {
-    for (auto i { 0 }; i < number_of_padding; ++i) {
-      encoded.emplace_back('=');
+  void encodeFullTripplets(const std::vector<char> &data) {
+    for (auto i { 0 }; i < number_of_tripplets; ++i) {
+      encodeTrippletByIndex(data, i);
     }
   }
-
-  void encodeTwoRemainingChars(const std::vector<char> &data) {
-    const auto tripplet { makeTripplet(data, data_size - 2, 2) };
-    const auto base64_chars { encodeTriplet(tripplet[0], tripplet[1]) };
-    copy(base64_chars, 3);
-    appendPadding(1);
+  void encodeTrippletByIndex(const std::vector<char> &data, int index) {
+    const auto current_index { index * tripplet_size };
+    const auto tripplet { extract(data, current_index, tripplet_size) };
+    const auto encoded { encodeTripplet(tripplet[0], tripplet[1], tripplet[2]) };
+    append(encoded, 4);
   }
-  void encodeOneRemainingChars(const std::vector<char> &data) {
-    const auto tripplet { makeTripplet(data, data_size - 1, 1) };
-    const auto base64_chars { encodeTriplet(tripplet[0], tripplet[1]) };
-    copy(base64_chars, 2);
-    appendPadding(2);
-  }
-
-  std::array<char, 4> encodeTriplet(std::uint8_t a, std::uint8_t b = 0, std::uint8_t c = 0) {
+  std::array<char, 4> encodeTripplet(std::uint8_t a, std::uint8_t b = 0, std::uint8_t c = 0) {
     const auto concat_bits { static_cast<std::uint32_t>((a << 16) | (b << 8) | c) };
     const auto b64_char1 { encode_table[concat_bits >> 18 & 63] };
     const auto b64_char2 { encode_table[concat_bits >> 12 & 63] };
@@ -106,37 +98,84 @@ class Encoder {
     const auto b64_char4 { encode_table[concat_bits & 63] };
     return { b64_char1, b64_char2, b64_char3, b64_char4 };
   }
+
+  void encodeRemainingCharsIfExist(const std::vector<char> &data) {
+    const auto remaining_chars { data_size - number_of_tripplets * tripplet_size };
+    if (remaining_chars == 2) {
+      encodeTwoRemainingChars(data);
+    } else if (remaining_chars == 1) {
+      encodeOneRemainingChars(data);
+    }
+  }
+  void encodeTwoRemainingChars(const std::vector<char> &data) {
+    const auto current_index { data_size - 2 };
+    const auto tripplet { extract(data, current_index, 2) };
+    const auto encoded { encodeTripplet(tripplet[0], tripplet[1]) };
+    append(encoded, 3);
+    appendPadding(1);
+  }
+  void encodeOneRemainingChars(const std::vector<char> &data) {
+    const auto current_index { data_size - 1 };
+    const auto tripplet { extract(data, current_index, 1) };
+    const auto encoded { encodeTripplet(tripplet[0]) };
+    append(encoded, 2);
+    appendPadding(2);
+  }
+  void appendPadding(size_t number_of_padding) {
+    for (auto i { 0 }; i < number_of_padding; ++i) {
+      container.emplace_back('=');
+    }
+  }
 };
 
-class Decoder {
+class Decoder : public Container {
+ private:
+  static constexpr size_t quadruple_size { 4 };
+  std::vector<char> unpadded_encoded;
+  size_t number_of_quadruples;
+
  public:
   std::vector<char> decode(const std::vector<char> &data) {
-    const auto padding_pos { std::find(std::begin(data), std::end(data), '=') };
-    std::vector<char> unpadded_encoded { std::begin(data), padding_pos };
-    const auto full_quadruples { unpadded_encoded.size() / 4 };
-    std::vector<char> result;
-    result.reserve(((full_quadruples + 2) * 3) / 4);
-    for (auto i { 0 }; i < full_quadruples; ++i) {
-      std::vector<char> quad { std::begin(unpadded_encoded) + i * 4, (std::begin(unpadded_encoded) + i * 4) + 4 };
-      const auto bytes { decodeQuad(quad[0], quad[1], quad[2], quad[3]) };
-      std::copy(std::begin(bytes), std::end(bytes), std::back_inserter(result));
+    setUp(data);
+    for (auto i { 0 }; i < number_of_quadruples; ++i) {
+      const auto quadruple { extract(data, i * 4, quadruple_size) };
+      const auto bytes { decodeQuad(quadruple[0], quadruple[1], quadruple[2], quadruple[3]) };
+      append(bytes, 3);
     }
 
-    if (std::vector<char> last_quad { std::begin(unpadded_encoded) + full_quadruples * 4, std::end(unpadded_encoded) };
-        last_quad.size() == 0) {
-      return result;
-    } else if ((last_quad.size() == 2) || (last_quad[2] == '=')) {
+    std::vector<char> last_quad { std::begin(unpadded_encoded) + number_of_quadruples * 4, std::end(unpadded_encoded) };
+    if (last_quad.size() == 0) {
+      return container;
+    } else if (last_quad.size() == 2) {
       const auto bytes { decodeQuad(last_quad[0], last_quad[1], 'A', 'A') };
-      result.emplace_back(bytes[0]);
+      append(bytes, 1);
     } else {
       const auto bytes { decodeQuad(last_quad[0], last_quad[1], last_quad[2], 'A') };
-      std::copy_n(std::begin(bytes), 2, std::back_inserter(result));
+      append(bytes, 2);
     }
 
-    return result;
+    return container;
   }
 
  private:
+  void setUp(const std::vector<char> &data) noexcept override {
+    unpadded_encoded = { std::begin(data), std::find(std::begin(data), std::end(data), '=') };
+    number_of_quadruples = unpadded_encoded.size() / quadruple_size;
+    container.clear();
+    container.reserve(((number_of_quadruples + 2) * 3) / quadruple_size);
+  }
+
+  std::array<std::uint8_t, 3> decodeQuadruplesByIndex(const std::vector<char> &data, size_t index) {
+    const auto current_index { index * quadruple_size };
+    const auto quadruple { extract(data, current_index, quadruple_size) };
+    const auto bytes { decodeQuad(quadruple[0], quadruple[1], quadruple[2], quadruple[3]) };
+    append(bytes, 3);
+  }
+  std::vector<char> extractQuadruple(const std::vector<char> &data, size_t start, size_t amount) {
+    const auto pos_of_quadruple { std::begin(data) + start };
+    return { pos_of_quadruple, pos_of_quadruple + amount };
+  }
+
   std::array<std::uint8_t, 3> decodeQuad(char a, char b, char c, char d) {
     const auto concat_bytes { static_cast<std::uint32_t>((decode_table[a] << 18) | (decode_table[b] << 12) |
                                                          (decode_table[c] << 6) | decode_table[d]) };
@@ -148,15 +187,6 @@ class Decoder {
 };
 
 class EncoderDecoderTest : public Test {};
-
-TEST_F(EncoderDecoderTest, test) {
-  Encoder encoder;
-  Decoder decoder;
-  std::vector<char> actual { 'I', 'L' };
-  auto encoded { encoder.encode(actual) };
-  auto decoded { decoder.decode(encoded) };
-  ASSERT_EQ(decoded, actual);
-}
 
 TEST_F(EncoderDecoderTest, Encoding_and_decoding_100_files_with_max_size_1000_are_correct) {
   Encoder encoder;
