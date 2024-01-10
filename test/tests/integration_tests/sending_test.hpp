@@ -4,10 +4,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../generators/html_files_generator.hpp"
 #include "modules/core/controller_impl.hpp"
 #include "modules/webserver/htmlparser.hpp"
-#include "reader.hpp"
+#include "utility/html_maker.hpp"
+#include "utility/reader.hpp"
 
 using namespace testing;
 using namespace home;
@@ -17,7 +17,7 @@ using namespace webserver;
 class SendingTest : public Test {
  private:
   Reader reader;
-  HTMLGenerator generator;
+  HTMLMaker generator;
 
  public:
   std::string expected_data;
