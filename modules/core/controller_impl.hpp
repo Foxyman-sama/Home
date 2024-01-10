@@ -4,6 +4,8 @@
 #include <stdexcept>
 
 #include "controller.hpp"
+#include "decoder.hpp"
+#include "encoder.hpp"
 #include "parser.hpp"
 
 namespace home::controller {

@@ -8,8 +8,8 @@
 
 struct GeneratedParams {
   std::string data;
-  size_t number_of_files;
-  size_t size_of_files;
+  size_t number_of_files = 0;
+  size_t size_of_files = 0;
 };
 
 class HTMLMaker {
