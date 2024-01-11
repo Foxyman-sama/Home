@@ -6,6 +6,7 @@
 #include "tests/unit_tests/controller_test.hpp"
 #include "tests/unit_tests/decoder_test.hpp"
 #include "tests/unit_tests/encoder_test.hpp"
+#include "tests/unit_tests/jsonoutput_test.hpp"
 #include "tests/unit_tests/parser_test.hpp"
 
 int startTests(int argc, char **argv) {
