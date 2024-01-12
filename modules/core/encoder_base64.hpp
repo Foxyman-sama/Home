@@ -5,11 +5,10 @@
 #include <cstdint>
 
 #include "crypto.hpp"
-#include "encoder.hpp"
 
 namespace home::crypto {
 
-class Base64Encoder : public Encoder, public Crypto {
+class Base64Encoder : public Crypto {
  private:
   static constexpr std::array<char, 64> encode_table { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                                                        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -20,7 +19,7 @@ class Base64Encoder : public Encoder, public Crypto {
   size_t number_of_tripplets;
 
  public:
-  std::vector<char> encode(const std::vector<char> &data) override;
+  std::vector<char> encode(const std::vector<char> &data);
 
  private:
   std::vector<char> tryEncode(const std::vector<char> &data);
