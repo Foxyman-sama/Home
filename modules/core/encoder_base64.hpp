@@ -19,7 +19,7 @@ class Base64Encoder : public Crypto {
   size_t number_of_tripplets;
 
  public:
-  std::vector<char> encode(const std::vector<char> &data);
+  virtual std::vector<char> encode(const std::vector<char> &data);
 
  private:
   std::vector<char> tryEncode(const std::vector<char> &data);

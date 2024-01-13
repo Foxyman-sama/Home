@@ -32,7 +32,7 @@ class Base64Decoder : public Crypto {
   size_t number_of_quadruples;
 
  public:
-  std::vector<char> decode(const std::vector<char> &data);
+  virtual std::vector<char> decode(const std::vector<char> &data);
 
  private:
   void setUp(const std::vector<char> &data) noexcept override;
