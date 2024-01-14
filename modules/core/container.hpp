@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace home::interactor {
+namespace home::container {
 
 class Container {
  public:
@@ -13,6 +13,6 @@ class Container {
   virtual std::string read(const std::string &) = 0;
 };
 
-}  // namespace home::interactor
+}  // namespace home::container
 
 #endif

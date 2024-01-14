@@ -1,6 +1,7 @@
 #include "json_container.hpp"
 
-namespace home::interactor {
+namespace home::container {
+
 JSONContainer::JSONContainer(const std::string_view& path) : path { path } {
   std::ifstream fin { path.data() };
   if (fin.is_open() == true) {
@@ -19,4 +20,4 @@ void JSONContainer::write(const std::string& filename, const std::string& fileda
 
 std::string JSONContainer::read(const std::string& filename) { return json.get<std::string>(filename); }
 
-}  // namespace home::interactor
+}  // namespace home::container

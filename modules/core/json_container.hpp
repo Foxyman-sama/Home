@@ -12,7 +12,7 @@ using namespace boost::property_tree;
 
 }
 
-namespace home::interactor {
+namespace home::container {
 
 class JSONContainer : public Container {
  private:
@@ -31,6 +31,6 @@ class JSONContainer : public Container {
   std::string read(const std::string &filename) override;
 };
 
-}  // namespace home::interactor
+}  // namespace home::container
 
 #endif

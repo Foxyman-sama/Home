@@ -10,24 +10,19 @@ HashTable<std::string, std::string> ControllerImpl::save(const std::string &str)
   }
 }
 HashTable<std::string, std::string> ControllerImpl::trySave(const std::string &str) {
-  auto files { parse(str) };
+  auto files { parser.parse(str) };
+  interactor.encodeAndSave(files);
   return makeResult(files);
 }
-HashTable<std::string, std::vector<char>> ControllerImpl::parse(const std::string &str) { return parser.parse(str); }
 HashTable<std::string, std::string> ControllerImpl::makeResult(const HashTable<std::string, std::vector<char>> &files) {
-  HashTable<std::string, std::string> result;
   auto number_of_files { files.getSize() };
-  auto size_of_files { calculateGeneralSizeOfFiles(files) };
-  result.emplace("number_of_files", std::to_string(number_of_files));
-  result.emplace("size_of_files", std::to_string(size_of_files));
-  return result;
+  auto amount_of_data { countTotalAmountOfData(files) };
+  return { { "number_of_files", std::to_string(number_of_files) },
+           { "size_of_files", std::to_string(amount_of_data) } };
 }
-size_t ControllerImpl::calculateGeneralSizeOfFiles(const HashTable<std::string, std::vector<char>> &files) {
+size_t ControllerImpl::countTotalAmountOfData(const HashTable<std::string, std::vector<char>> &files) {
   auto result { 0 };
-  for (auto &&[filename, filedata] : files) {
-    result += filedata.size();
-  }
-
+  std::ranges::for_each(files, [&](auto &&pair) { result += pair.second.size(); });
   return result;
 }
 

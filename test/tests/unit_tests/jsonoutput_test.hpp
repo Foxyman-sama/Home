@@ -9,6 +9,7 @@
 using namespace testing;
 using namespace home;
 using namespace interactor;
+using namespace container;
 
 class JSONContainerTest : public Test, private JSONContainer {
  private:

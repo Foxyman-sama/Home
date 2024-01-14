@@ -3,6 +3,13 @@
 namespace home::crypto {
 
 std::vector<char> Base64Decoder::decode(const std::vector<char> &data) {
+  try {
+    return tryDecode(data);
+  } catch (...) {
+    throw;
+  }
+}
+std::vector<char> Base64Decoder::tryDecode(const std::vector<char> &data) {
   setUp(data);
   decodeFullQuadruples();
   decodeRemainingCharsIfExist();

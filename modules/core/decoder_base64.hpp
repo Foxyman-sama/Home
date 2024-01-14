@@ -35,6 +35,7 @@ class Base64Decoder : public Crypto {
   virtual std::vector<char> decode(const std::vector<char> &data);
 
  private:
+  std::vector<char> tryDecode(const std::vector<char> &data);
   void setUp(const std::vector<char> &data) noexcept override;
 
   void decodeFullQuadruples();
