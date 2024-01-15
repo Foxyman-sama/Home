@@ -19,7 +19,8 @@ class MockParser : public Parser {
 };
 class MockInteractor : public Interactor {
  public:
-  MOCK_METHOD(void, encodeAndSave, ((const HashTable<std::string, std::vector<char>> &)), (override));
+  MOCK_METHOD((std::pair<size_t, size_t>), encodeAndSave, ((const HashTable<std::string, std::vector<char>> &)),
+              (override));
   MOCK_METHOD((std::vector<char>), decodeAndGet, (const std::string &), (override));
 };
 

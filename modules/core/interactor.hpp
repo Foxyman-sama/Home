@@ -10,7 +10,7 @@ namespace home::interactor {
 
 class Interactor {
  public:
-  virtual void encodeAndSave(const HashTable<std::string, std::vector<char>> &) = 0;
+  virtual std::pair<size_t, size_t> encodeAndSave(const HashTable<std::string, std::vector<char>> &) = 0;
 
   virtual std::vector<char> decodeAndGet(const std::string &) = 0;
 };

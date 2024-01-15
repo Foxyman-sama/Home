@@ -23,8 +23,7 @@ class ControllerImpl : public Controller {
 
  private:
   HashTable<std::string, std::string> trySave(const std::string &str);
-  HashTable<std::string, std::string> makeResult(const HashTable<std::string, std::vector<char>> &files);
-  size_t countTotalAmountOfData(const HashTable<std::string, std::vector<char>> &files);
+  HashTable<std::string, std::string> formatReturn(size_t number_of_files, size_t amount_of_data);
 };
 
 }  // namespace home::controller

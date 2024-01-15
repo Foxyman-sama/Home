@@ -6,20 +6,39 @@ InteractorImpl::InteractorImpl(crypto::Base64Encoder &encoder, crypto::Base64Dec
                                container::Container &container)
     : encoder { encoder }, decoder { decoder }, container { container } {}
 
-void InteractorImpl::encodeAndSave(const HashTable<std::string, std::vector<char>> &files) {
-  for (auto &&[filename, filedata] : files) {
-    auto encoded { encoder.encode(filedata) };
-    std::string temp;
-    std::copy(std::begin(encoded), std::end(encoded), std::back_inserter(temp));
-    container.write(filename, temp);
+std::pair<size_t, size_t> InteractorImpl::encodeAndSave(const HashTable<std::string, std::vector<char>> &files) {
+  try {
+    return tryEncodeAndSaveFiles(files);
+  } catch (...) {
+    throw;
   }
+}
+std::pair<size_t, size_t> InteractorImpl::tryEncodeAndSaveFiles(
+    const HashTable<std::string, std::vector<char>> &files) {
+  DataCounter counter;
+  for (auto &&[filename, filedata] : files) {
+    encodeAndSaveFile(filename, filedata);
+    counter.count(filedata);
+  }
+
+  return counter.get();
+}
+void InteractorImpl::encodeAndSaveFile(const std::string &filename, const std::vector<char> &filedata) {
+  auto encoded { encoder.encode(filedata) };
+  container.write(filename, Converter::vectorToString(encoded));
 }
 
 std::vector<char> InteractorImpl::decodeAndGet(const std::string &filename) {
+  try {
+    return tryDecodeAndGet(filename);
+  } catch (...) {
+    throw;
+  }
+}
+std::vector<char> InteractorImpl::tryDecodeAndGet(const std::string &filename) {
   auto encoded { container.read(filename) };
-  std::vector<char> temp;
-  std::copy(encoded.begin(), encoded.end(), temp.end());
-  auto decoded { decoder.decode(temp) };
+  auto converted { Converter::stringToVector(encoded) };
+  auto decoded { decoder.decode(converted) };
   return decoded;
 }
 
