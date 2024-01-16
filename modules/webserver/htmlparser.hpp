@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "../core/parser.hpp"
+#include "../utility/converter.hpp"
 
 namespace home::webserver {
 
@@ -29,7 +30,6 @@ class HTMLParser : public Parser {
   std::string extract(const std::string &str, size_t beg, size_t end);
 
   std::vector<char> parseData(const std::string &str);
-  std::vector<char> stringToVector(const std::string &str);
 };
 
 }  // namespace home::webserver

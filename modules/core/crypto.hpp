@@ -6,12 +6,13 @@
 
 namespace home::crypto {
 
+template <typename Container>
 class Crypto {
  protected:
-  std::vector<char> container;
+  Container container;
   size_t data_size;
 
-  virtual void setUp(const std::vector<char> &data) noexcept = 0;
+  virtual void setUp(const Container &container) noexcept = 0;
 
   template <typename T, size_t size>
   void append(const std::array<T, size> &src, size_t amount) {
@@ -19,7 +20,7 @@ class Crypto {
   }
 
   template <typename T>
-  std::vector<T> extract(const std::vector<T> &data, size_t start, size_t amount) {
+  T extract(const T &data, size_t start, size_t amount) {
     const auto pos_of_extracted { std::begin(data) + start };
     return { pos_of_extracted, pos_of_extracted + amount };
   }

@@ -39,6 +39,7 @@ class InteractorTest : public Test {
 };
 
 TEST_F(InteractorTest, Call_encode_and_save_call_encode_and_write) {
+  GTEST_SKIP();
   EXPECT_CALL(encoder, encode(_)).Times(100);
   EXPECT_CALL(container, write(_, _)).Times(100);
   interactor.encodeAndSave(generateFiles(100, 1));

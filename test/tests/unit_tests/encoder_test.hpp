@@ -9,23 +9,24 @@
 using namespace testing;
 using namespace home;
 using namespace crypto;
+using namespace test;
 
 class EncoderTest : public Test {
  private:
-  Base64Encoder encoder;
-  std::vector<char> raw_data;
-  std::vector<char> expected;
-  std::vector<char> actual;
+  Base64EncoderTest encoder;
+  std::string raw_data;
+  std::string expected;
+  std::string actual;
 
  public:
-  void givenRawAndExpectedData(const std::string_view &raw_data, const std::string_view &expected) {
-    std::copy(std::begin(raw_data), std::end(raw_data), std::back_inserter(this->raw_data));
-    std::copy(std::begin(expected), std::end(expected), std::back_inserter(this->expected));
+  void givenRawAndExpectedData(const std::string &raw_data, const std::string &expected) {
+    this->raw_data = raw_data;
+    this->expected = expected;
   }
 
   void whenEncoderIsEncoding() {
     try {
-      actual = encoder.encode(raw_data);
+      actual = encoder.encode(raw_data);  // FIXME: fix the tests
     } catch (...) {
     }
   }

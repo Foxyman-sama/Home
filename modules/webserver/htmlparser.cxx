@@ -47,16 +47,7 @@ std::vector<char> HTMLParser::parseData(const std::string& str) {
   auto [pos_beg, pos_end] { find(str, data_matcher_beg, delim) };
   auto pos_end_without_ending_character { pos_end - 1 };
   auto data { extract(str, pos_beg, pos_end_without_ending_character) };
-  return stringToVector(data);
-}
-std::vector<char> HTMLParser::stringToVector(const std::string& str) {
-  std::vector<char> result;
-  result.reserve(str.length());
-  for (auto&& ch : str) {
-    result.emplace_back(ch);
-  }
-
-  return result;
+  return Converter::stringToVector(data);
 }
 
 }  // namespace home::webserver

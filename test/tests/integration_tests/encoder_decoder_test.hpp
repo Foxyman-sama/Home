@@ -8,16 +8,18 @@
 
 #include "modules/core/decoder_base64.hpp"
 #include "modules/core/encoder_base64.hpp"
+#include "modules/utility/converter.hpp"
 #include "utility/generators.hpp"
 
 using namespace testing;
 using namespace home;
 using namespace crypto;
+using namespace test;
 
 class EncoderDecoderTest : public Test {
  private:
-  Base64Encoder encoder;
-  Base64Decoder decoder;
+  Base64EncoderTest encoder;
+  Base64DecoderTest decoder;
   HashTable<std::string, std::vector<char>> expected;
   HashTable<std::string, std::vector<char>> actual;
 
@@ -29,7 +31,7 @@ class EncoderDecoderTest : public Test {
   void whenEncoderIsEncodingAndDecoderIsDecoding() {
     try {
       for (auto &&[filename, filedata] : expected) {
-        auto encoded { encoder.encode(filedata) };
+        auto encoded { encoder.encode(Converter::vectorToString(filedata)) };
         auto decoded { decoder.decode(encoded) };
       }
     } catch (...) {
@@ -37,7 +39,7 @@ class EncoderDecoderTest : public Test {
   }
 };
 
-TEST_F(EncoderDecoderTest, Encoding_and_decoding_100_files_with_max_size_1000_are_correct) {
+TEST_F(EncoderDecoderTest, Encoding_and_decoding_are_correct) {
   Base64Encoder encoder;
   Base64Decoder decoder;
   auto files { generateFiles(100, 1'000) };

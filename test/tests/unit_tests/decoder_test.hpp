@@ -9,18 +9,19 @@
 using namespace testing;
 using namespace home;
 using namespace crypto;
+using namespace test;
 
 class DecoderTest : public Test {
  private:
-  Base64Decoder decoder;
-  std::vector<char> encoded;
-  std::vector<char> expected;
-  std::vector<char> actual;
+  Base64DecoderTest decoder;
+  std::string encoded;
+  std::string expected;
+  std::string actual;
 
  public:
-  void givenEncodedAndExpectedData(const std::string_view &encoded, const std::string_view &expected) {
-    std::copy(std::begin(encoded), std::end(encoded), std::back_inserter(this->encoded));
-    std::copy(std::begin(expected), std::end(expected), std::back_inserter(this->expected));
+  void givenEncodedAndExpectedData(const std::string &encoded, const std::string &expected) {
+    this->encoded = encoded;
+    this->expected = expected;
   }
 
   void whenDecoderIsDecoding() {

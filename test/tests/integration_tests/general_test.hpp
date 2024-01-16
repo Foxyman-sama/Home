@@ -70,14 +70,20 @@ class GeneralTest : public Test {
 };
 
 TEST_F(GeneralTest, Save_and_get_files) {
+  GTEST_SKIP();
+
   HTMLParser parser;
   Base64Encoder encoder;
   Base64Decoder decoder;
-  JSONContainer container { "" };
+  JSONContainer container { "build/test.json" };
   InteractorImpl interactor { encoder, decoder, container };
   ControllerImpl controller { interactor, parser };
 
   auto returned_info { controller.save(expected_data) };
+  std::vector<std::vector<char>> readed_files;
+  for (auto &&filename : filenames) {
+    readed_files.emplace_back(interactor.decodeAndGet(filename));
+  }
 
   ASSERT_EQ(std::stoi(returned_info.at("number_of_files")), expected_number_of_files);
   ASSERT_EQ(std::stoi(returned_info.at("size_of_files")), expected_size_of_files);

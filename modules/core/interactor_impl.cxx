@@ -25,7 +25,8 @@ std::pair<size_t, size_t> InteractorImpl::tryEncodeAndSaveFiles(
 }
 void InteractorImpl::encodeAndSaveFile(const std::string &filename, const std::vector<char> &filedata) {
   auto encoded { encoder.encode(filedata) };
-  container.write(filename, Converter::vectorToString(encoded));
+  auto encoded_filename { encoder.encode(Converter::stringToVector(filename)) };
+  container.write(Converter::vectorToString(encoded_filename), Converter::vectorToString(encoded));
 }
 
 std::vector<char> InteractorImpl::decodeAndGet(const std::string &filename) {
@@ -36,10 +37,9 @@ std::vector<char> InteractorImpl::decodeAndGet(const std::string &filename) {
   }
 }
 std::vector<char> InteractorImpl::tryDecodeAndGet(const std::string &filename) {
-  auto encoded { container.read(filename) };
-  auto converted { Converter::stringToVector(encoded) };
-  auto decoded { decoder.decode(converted) };
-  return decoded;
+  auto encoded_filename { encoder.encode(filename) };
+  auto encoded { container.read(encoded_filename) };
+  return Converter::stringToVector(decoder.decode(encoded));
 }
 
 }  // namespace home::interactor
