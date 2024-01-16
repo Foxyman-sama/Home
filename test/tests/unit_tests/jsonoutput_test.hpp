@@ -4,12 +4,16 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <ranges>
+
 #include "modules/core/json_container.hpp"
 
 using namespace testing;
 using namespace home;
 using namespace interactor;
 using namespace container;
+using std::ranges::for_each;
+using std::ranges::views::zip;
 
 class JSONContainerTest : public Test, private JSONContainer {
  private:
@@ -25,23 +29,11 @@ class JSONContainerTest : public Test, private JSONContainer {
   }
 
   void whenJSONContainerIsWriting() {
-    try {
-      auto i { filenames.begin() };
-      auto j { expected.begin() };
-      auto isEnd { [&]() { return (i == filenames.end()) || (j == expected.end()); } };
-      for (; isEnd() == false; ++i, ++j) {
-        write(*i, *j);
-      }
-    } catch (...) {
-    }
+    auto zipped { zip(filenames, expected) };
+    for_each(zipped, [this](auto &&tuple) { write(std::get<0>(tuple), std::get<1>(tuple)); });
   }
   void whenJSONContainerIsReading() {
-    try {
-      for (auto &&filename : filenames) {
-        actual.emplace_back(read(filename));
-      }
-    } catch (...) {
-    }
+    for_each(filenames, [&](auto &&filename) { actual.emplace_back(read(filename)); });
   }
 
   void thenActualAndExpectedDataShouldBeEqual() { ASSERT_EQ(actual, expected); }

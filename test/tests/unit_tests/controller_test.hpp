@@ -15,15 +15,13 @@ using namespace interactor;
 
 class MockParser : public Parser {
  public:
-  MOCK_METHOD((HashTable<std::string, std::vector<char>>), parse, (const std::string &), (override));
+  MOCK_METHOD((HashTable<std::string, std::string>), parse, (const std::string &), (override));
 };
 class MockInteractor : public Interactor {
  public:
-  MOCK_METHOD((std::pair<size_t, size_t>), encodeAndSave, ((const HashTable<std::string, std::vector<char>> &)),
-              (override));
-  MOCK_METHOD((std::vector<char>), decodeAndGet, (const std::string &), (override));
+  MOCK_METHOD((std::pair<size_t, size_t>), encodeAndSave, ((const HashTable<std::string, std::string> &)), (override));
+  MOCK_METHOD((std::string), decodeAndGet, (const std::string &), (override));
 };
-
 class ControllerTest : public Test {
  public:
   ControllerImpl controller;
@@ -33,10 +31,10 @@ class ControllerTest : public Test {
   ControllerTest() : controller { interactor, parser } {}
 };
 
-TEST_F(ControllerTest, Call_save_call_encode_and_save) {
-  EXPECT_CALL(interactor, encodeAndSave(_));
+TEST_F(ControllerTest, Call_save_call_parse_and_encode_and_save) {
   EXPECT_CALL(parser, parse(_));
-  controller.save("");
+  EXPECT_CALL(interactor, encodeAndSave(_));
+  controller.save({});
 }
 
 #endif

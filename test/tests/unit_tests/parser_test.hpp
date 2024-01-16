@@ -16,13 +16,13 @@ class ParserTest : public Test {
  private:
   HTMLParser parser;
   std::string data;
-  HashTable<std::string, std::vector<char>> expected_data;
-  HashTable<std::string, std::vector<char>> actual_data;
+  HashTable<std::string, std::string> expected_data;
+  HashTable<std::string, std::string> actual_data;
   bool is_threw_exception;
 
  public:
   void givenNumberOfFilesAndMaxSize(size_t number_of_files, size_t max_size) {
-    auto generated_data { generateHTMLWithFiles(number_of_files, max_size) };
+    auto generated_data { generateHTMLWithFiles<std::string, std::string>(number_of_files, max_size) };
     data = generated_data.first.data;
     expected_data = generated_data.second;
     is_threw_exception = false;
@@ -51,7 +51,7 @@ TEST_F(ParserTest, Parsing_100_files_with_max_size_1_is_correct) {
   thenActualShouldBeEqualExpected();
 }
 TEST_F(ParserTest, Parsing_100_files_with_max_size_1000_is_correct) {
-  givenNumberOfFilesAndMaxSize(100, 1000);
+  givenNumberOfFilesAndMaxSize(100, 1'000);
   whenParserIsParsing();
   thenActualShouldBeEqualExpected();
 }

@@ -26,12 +26,12 @@ class HTMLMaker {
     generated.data.append(1, '\n');
   }
 
-  void appendFile(const std::string &filename, const std::vector<char> &data) {
+  void appendFile(const std::string &filename, const std::string &str) {
     ++generated.number_of_files;
-    generated.size_of_files += data.size();
+    generated.size_of_files += str.size();
     appendBoundary();
     appendFilename(filename);
-    for (auto &&ch : data) {
+    for (auto &&ch : str) {
       generated.data.append(1, ch);
     }
 

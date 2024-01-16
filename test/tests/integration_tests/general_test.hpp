@@ -70,8 +70,6 @@ class GeneralTest : public Test {
 };
 
 TEST_F(GeneralTest, Save_and_get_files) {
-  GTEST_SKIP();
-
   HTMLParser parser;
   Base64Encoder encoder;
   Base64Decoder decoder;
@@ -80,13 +78,11 @@ TEST_F(GeneralTest, Save_and_get_files) {
   ControllerImpl controller { interactor, parser };
 
   auto returned_info { controller.save(expected_data) };
-  std::vector<std::vector<char>> readed_files;
-  for (auto &&filename : filenames) {
-    readed_files.emplace_back(interactor.decodeAndGet(filename));
-  }
+  auto number_of_files { std::stoi(returned_info.at("number_of_files")) };
+  auto size_of_files { std::stoi(returned_info.at("size_of_files")) };
 
-  ASSERT_EQ(std::stoi(returned_info.at("number_of_files")), expected_number_of_files);
-  ASSERT_EQ(std::stoi(returned_info.at("size_of_files")), expected_size_of_files);
+  ASSERT_EQ(number_of_files, expected_number_of_files) << std::format("Number of files: {}", number_of_files);
+  ASSERT_EQ(size_of_files, expected_size_of_files) << std::format("Size of files: {}", size_of_files);
 }
 
 #endif

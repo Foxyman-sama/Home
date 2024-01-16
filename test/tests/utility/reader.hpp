@@ -25,14 +25,15 @@ class Reader {
   }
   int readNumber() { return std::stoi(readString()); }
 
-  std::vector<char> createStreamAndReadFile(const std::string &filename) {
+  std::string createStreamAndReadFile(const std::string &filename) {
     std::ifstream file_stream { folder + filename, std::ios_base::binary };
     file_stream.seekg(0, file_stream.end);
 
     auto size { file_stream.tellg() };
     file_stream.seekg(0, file_stream.beg);
 
-    std::vector<char> result(size);
+    std::string result;
+    result.resize(size);
     file_stream.read(result.data(), size);
     return result;
   }

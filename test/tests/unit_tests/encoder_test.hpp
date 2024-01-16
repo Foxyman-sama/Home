@@ -9,11 +9,10 @@
 using namespace testing;
 using namespace home;
 using namespace crypto;
-using namespace test;
 
 class EncoderTest : public Test {
  private:
-  Base64EncoderTest encoder;
+  Base64Encoder encoder;
   std::string raw_data;
   std::string expected;
   std::string actual;
@@ -24,12 +23,7 @@ class EncoderTest : public Test {
     this->expected = expected;
   }
 
-  void whenEncoderIsEncoding() {
-    try {
-      actual = encoder.encode(raw_data);  // FIXME: fix the tests
-    } catch (...) {
-    }
-  }
+  void whenEncoderIsEncoding() { actual = encoder.encode(raw_data); }
 
   void thenActualDataShouldBeEqualExpected() {
     ASSERT_EQ(actual.size(), expected.size());

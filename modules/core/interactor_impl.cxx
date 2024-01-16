@@ -6,15 +6,14 @@ InteractorImpl::InteractorImpl(crypto::Base64Encoder &encoder, crypto::Base64Dec
                                container::Container &container)
     : encoder { encoder }, decoder { decoder }, container { container } {}
 
-std::pair<size_t, size_t> InteractorImpl::encodeAndSave(const HashTable<std::string, std::vector<char>> &files) {
+std::pair<size_t, size_t> InteractorImpl::encodeAndSave(const HashTable<std::string, std::string> &files) {
   try {
     return tryEncodeAndSaveFiles(files);
   } catch (...) {
     throw;
   }
 }
-std::pair<size_t, size_t> InteractorImpl::tryEncodeAndSaveFiles(
-    const HashTable<std::string, std::vector<char>> &files) {
+std::pair<size_t, size_t> InteractorImpl::tryEncodeAndSaveFiles(const HashTable<std::string, std::string> &files) {
   DataCounter counter;
   for (auto &&[filename, filedata] : files) {
     encodeAndSaveFile(filename, filedata);
@@ -23,23 +22,23 @@ std::pair<size_t, size_t> InteractorImpl::tryEncodeAndSaveFiles(
 
   return counter.get();
 }
-void InteractorImpl::encodeAndSaveFile(const std::string &filename, const std::vector<char> &filedata) {
+void InteractorImpl::encodeAndSaveFile(const std::string &filename, const std::string &filedata) {
   auto encoded { encoder.encode(filedata) };
-  auto encoded_filename { encoder.encode(Converter::stringToVector(filename)) };
-  container.write(Converter::vectorToString(encoded_filename), Converter::vectorToString(encoded));
+  auto encoded_filename { encoder.encode(filename) };
+  container.write(encoded_filename, encoded);
 }
 
-std::vector<char> InteractorImpl::decodeAndGet(const std::string &filename) {
+std::string InteractorImpl::decodeAndGet(const std::string &filename) {
   try {
     return tryDecodeAndGet(filename);
   } catch (...) {
     throw;
   }
 }
-std::vector<char> InteractorImpl::tryDecodeAndGet(const std::string &filename) {
+std::string InteractorImpl::tryDecodeAndGet(const std::string &filename) {
   auto encoded_filename { encoder.encode(filename) };
   auto encoded { container.read(encoded_filename) };
-  return Converter::stringToVector(decoder.decode(encoded));
+  return decoder.decode(encoded);
 }
 
 }  // namespace home::interactor
