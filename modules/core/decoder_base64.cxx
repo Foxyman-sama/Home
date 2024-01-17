@@ -16,12 +16,17 @@ std::string Base64Decoder::tryDecode(const std::string &str) {
   return container;
 }
 void Base64Decoder::setUp(const std::string &str) noexcept {
-  auto last_unpadded_char { std::find(std::begin(str), std::end(str), '=') };
-  unpadded_encoded = { std::begin(str), last_unpadded_char };
+  if (str.find('=') != std::string::npos) {
+    unpadded_encoded = { str.begin(), str.begin() + str.find('=') };
+  } else {
+    unpadded_encoded = { str.begin(), str.end() };
+  }
+
   data_size = unpadded_encoded.size();
   number_of_quadruples = unpadded_encoded.size() / quadruple_size;
   container.clear();
-  container.reserve(((number_of_quadruples + 2) * 3) / quadruple_size);
+  // "*3" is reserved for tripplets and we need to divide into quadruple_size because size will decrease
+  container.reserve((number_of_quadruples * 3) / quadruple_size);
 }
 
 void Base64Decoder::decodeFullQuadruples() {

@@ -11,19 +11,19 @@ class Reader {
  public:
   void open(const std::string &folder, const std::string &path) {
     this->folder = folder;
-    fin.open(folder + path);
+    this->fin.open(folder + path);
   }
 
   bool isOpen() { return fin.is_open(); }
 
   bool isEndOfFile() { return fin.peek() == EOF; };
 
+  int readNumber() { return std::stoi(readString()); }
   std::string readString() {
     std::string result;
     fin >> result;
     return result;
   }
-  int readNumber() { return std::stoi(readString()); }
 
   std::string createStreamAndReadFile(const std::string &filename) {
     std::ifstream file_stream { folder + filename, std::ios_base::binary };

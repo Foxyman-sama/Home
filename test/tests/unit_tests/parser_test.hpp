@@ -22,9 +22,9 @@ class ParserTest : public Test {
 
  public:
   void givenNumberOfFilesAndMaxSize(size_t number_of_files, size_t max_size) {
-    auto generated_data { generateHTMLWithFiles<std::string, std::string>(number_of_files, max_size) };
-    data = generated_data.first.data;
-    expected_data = generated_data.second;
+    auto [tuple, files] { generateHTMLWithFiles<std::string, std::string>(number_of_files, max_size) };
+    data = std::get<0>(tuple);
+    expected_data = files;
     is_threw_exception = false;
   }
 

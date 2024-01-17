@@ -2,6 +2,7 @@
 #define CRYPTO_HPP
 
 #include <algorithm>
+#include <ranges>
 #include <vector>
 
 namespace home::crypto {
@@ -16,15 +17,15 @@ class Crypto {
 
   template <typename T, size_t size>
   void append(const std::array<T, size> &src, size_t amount) {
-    std::copy_n(std::begin(src), amount, std::back_inserter(container));
-  }
-
-  template <typename T>
-  T extract(const T &data, size_t start, size_t amount) {
-    const auto pos_of_extracted { std::begin(data) + start };
-    return { pos_of_extracted, pos_of_extracted + amount };
+    std::ranges::copy_n(src.begin(), amount, std::back_inserter(container));
   }
 };
+
+template <typename T>
+T extract(const T &data, size_t start, size_t amount) {
+  const auto pos_of_extracted { std::begin(data) + start };
+  return { pos_of_extracted, pos_of_extracted + amount };
+}
 
 }  // namespace home::crypto
 #endif

@@ -15,8 +15,8 @@ HashTable<std::string, std::string> ControllerImpl::trySave(const std::string &s
   return formatReturn(number_of_files, amount_of_data);
 }
 HashTable<std::string, std::string> ControllerImpl::formatReturn(size_t number_of_files, size_t amount_of_data) {
-  return { { "number_of_files", std::to_string(number_of_files) },
-           { "size_of_files", std::to_string(amount_of_data) } };
+  return { { title_number_of_files.data(), std::to_string(number_of_files) },
+           { title_amount_of_data.data(), std::to_string(amount_of_data) } };
 }
 
 }  // namespace home::controller

@@ -19,6 +19,8 @@ void Base64Encoder::setUp(const std::string &str) noexcept {
   data_size = str.size();
   number_of_tripplets = data_size / 3;
   container.clear();
+  // "+2" is reserved for padding and "*4" is reserved for quadruples because we from raw tripplets make encoded
+  // quadruples
   container.reserve((number_of_tripplets + 2) * 4);
 }
 void Base64Encoder::encodeFullTripplets(const std::string &str) {
@@ -42,6 +44,7 @@ std::array<char, 4> Base64Encoder::encodeTripplet(std::uint8_t a, std::uint8_t b
 }
 
 void Base64Encoder::encodeRemainingCharsIfExist(const std::string &str) {
+  // We take the size of the full tripplets and it substracts from the data size
   const auto remaining_chars { data_size - number_of_tripplets * tripplet_size };
   if (remaining_chars == 2) {
     encodeTwoRemainingChars(str);

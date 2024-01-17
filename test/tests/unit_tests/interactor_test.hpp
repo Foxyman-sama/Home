@@ -22,12 +22,11 @@ class MockDecoder : public Base64Decoder {
  public:
   MOCK_METHOD((std::string), decode, (const std::string &), (override));
 };
-class MockContainer : public Container {
+class MockContainer : public JSONContainer {
  public:
   MOCK_METHOD(void, write, (const std::string &, const std::string &), (override));
   MOCK_METHOD((std::string), read, (const std::string &), (override));
 };
-
 class InteractorTest : public Test {
  public:
   InteractorImpl interactor;
@@ -39,19 +38,15 @@ class InteractorTest : public Test {
 };
 
 TEST_F(InteractorTest, Call_encode_and_save_call_encode_and_write) {
-  for (auto i { 0 }; i < 100; ++i) {
-    auto &first_call { EXPECT_CALL(encoder, encode(_)).Times(2) };
-    EXPECT_CALL(container, write(_, _)).After(first_call);
-    interactor.encodeAndSave(generateFiles<std::string, std::string>(1, 1));
-  }
+  auto &first_call { EXPECT_CALL(encoder, encode(_)).Times(2) };
+  EXPECT_CALL(container, write(_, _)).After(first_call);
+  interactor.encodeAndSave(generateFiles<std::string, std::string>(1, 1));
 }
 TEST_F(InteractorTest, Call_decode_and_get_call_read_and_decode) {
-  for (auto i { 0 }; i < 100; ++i) {
-    auto &first_call { EXPECT_CALL(encoder, encode(_)) };
-    auto &second_call { EXPECT_CALL(container, read(_)).After(first_call) };
-    EXPECT_CALL(decoder, decode(_)).After(second_call);
-    interactor.decodeAndGet("");
-  }
+  auto &first_call { EXPECT_CALL(encoder, encode(_)) };
+  auto &second_call { EXPECT_CALL(container, read(_)).After(first_call) };
+  EXPECT_CALL(decoder, decode(_)).After(second_call);
+  interactor.decodeAndGet("");
 }
 
 #endif

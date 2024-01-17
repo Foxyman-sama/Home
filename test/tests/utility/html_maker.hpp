@@ -6,63 +6,59 @@
 #include <random>
 #include <string>
 
-struct GeneratedParams {
+class HTMLMaker {
+ private:
   std::string data;
   size_t number_of_files = 0;
   size_t size_of_files = 0;
-};
-
-class HTMLMaker {
- private:
-  GeneratedParams generated;
 
  public:
   void makeTextFileAndAppend(const std::string &filename, size_t size, const std::string &symbol) {
-    ++generated.number_of_files;
-    generated.size_of_files += size;
+    ++number_of_files;
+    size_of_files += size;
     appendBoundary();
     appendFilename(filename);
-    generated.data.append(size, symbol[0]);
-    generated.data.append(1, '\n');
+    data.append(size, symbol[0]);
+    data.append(1, '\n');
   }
 
   void appendFile(const std::string &filename, const std::string &str) {
-    ++generated.number_of_files;
-    generated.size_of_files += str.size();
+    ++number_of_files;
+    size_of_files += str.size();
     appendBoundary();
     appendFilename(filename);
     for (auto &&ch : str) {
-      generated.data.append(1, ch);
+      data.append(1, ch);
     }
 
-    generated.data.append(1, '\n');
+    data.append(1, '\n');
   }
 
-  GeneratedParams getGeneratedParamsAndIfNotEmptyAddLastBounary() {
-    if (generated.data.empty() == false) {
+  std::tuple<std::string, size_t, size_t> getGeneratedParamsAndIfNotEmptyAddLastBounary() {
+    if (data.empty() == false) {
       appendBoundary();
     }
 
-    return generated;
+    return { data, number_of_files, size_of_files };
   }
 
   void clearGeneratedData() {
-    generated.number_of_files = 0;
-    generated.size_of_files = 0;
-    generated.data.clear();
+    number_of_files = 0;
+    size_of_files = 0;
+    data.clear();
   }
 
  private:
   void appendBoundary() {
-    generated.data.append(6, '-');
-    generated.data.append("WebKitFormBoundary");
-    generated.data.append(1, '\n');
+    data.append(6, '-');
+    data.append("WebKitFormBoundary");
+    data.append(1, '\n');
   }
   void appendFilename(const std::string &filename) {
-    generated.data.append("filename=\"");
-    generated.data.append(filename);
-    generated.data.append(1, '\"');
-    generated.data.append("\r\n\r\n");
+    data.append("filename=\"");
+    data.append(filename);
+    data.append(1, '\"');
+    data.append("\r\n\r\n");
   }
 };
 

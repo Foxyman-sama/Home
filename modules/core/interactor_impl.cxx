@@ -3,7 +3,7 @@
 namespace home::interactor {
 
 InteractorImpl::InteractorImpl(crypto::Base64Encoder &encoder, crypto::Base64Decoder &decoder,
-                               container::Container &container)
+                               container::JSONContainer &container)
     : encoder { encoder }, decoder { decoder }, container { container } {}
 
 std::pair<size_t, size_t> InteractorImpl::encodeAndSave(const HashTable<std::string, std::string> &files) {
@@ -23,9 +23,7 @@ std::pair<size_t, size_t> InteractorImpl::tryEncodeAndSaveFiles(const HashTable<
   return counter.get();
 }
 void InteractorImpl::encodeAndSaveFile(const std::string &filename, const std::string &filedata) {
-  auto encoded { encoder.encode(filedata) };
-  auto encoded_filename { encoder.encode(filename) };
-  container.write(encoded_filename, encoded);
+  container.write(encoder.encode(filename), encoder.encode(filedata));
 }
 
 std::string InteractorImpl::decodeAndGet(const std::string &filename) {

@@ -28,19 +28,17 @@ class EncoderDecoderTest : public Test {
   }
 
   void whenEncoderIsEncodingAndThenDecoderIsDecoding() {
-    for_each(expected, [this](auto &&pair) {
-      const auto [filename, filedata] { pair };
+    for (auto &&[filename, filedata] : expected) {
       const auto encoded { encoder.encode(filedata) };
-      const auto decoded { decoder.decode(encoded) };
-      actual.emplace(filename, decoded);
-    });
+      actual.emplace(filename, decoder.decode(encoded));
+    }
   }
 
   void thenActualAndExpectedDataShouldBeEqual() { ASSERT_EQ(actual, expected); }
 };
 
 TEST_F(EncoderDecoderTest, Encoding_and_decoding_are_correct) {
-  givenNumberOfFilesAndMaxSizeOfThem(100, 100);
+  givenNumberOfFilesAndMaxSizeOfThem(100, 1'000);
   whenEncoderIsEncodingAndThenDecoderIsDecoding();
   thenActualAndExpectedDataShouldBeEqual();
 }

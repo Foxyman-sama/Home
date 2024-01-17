@@ -3,10 +3,10 @@
 
 #include <ranges>
 
-#include "container.hpp"
 #include "decoder_base64.hpp"
 #include "encoder_base64.hpp"
 #include "interactor.hpp"
+#include "json_container.hpp"
 
 namespace home::interactor {
 
@@ -27,10 +27,10 @@ class InteractorImpl : public Interactor {
  private:
   crypto::Base64Encoder &encoder;
   crypto::Base64Decoder &decoder;
-  container::Container &container;
+  container::JSONContainer &container;
 
  public:
-  InteractorImpl(crypto::Base64Encoder &encoder, crypto::Base64Decoder &decoder, container::Container &container);
+  InteractorImpl(crypto::Base64Encoder &encoder, crypto::Base64Decoder &decoder, container::JSONContainer &container);
 
   std::pair<size_t, size_t> encodeAndSave(const HashTable<std::string, std::string> &files) override;
 

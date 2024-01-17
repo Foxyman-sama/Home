@@ -11,10 +11,13 @@
 
 namespace home::controller {
 
+constexpr std::string_view title_number_of_files { "number_of_files" };
+constexpr std::string_view title_amount_of_data { "amount_of_data" };
+
 class ControllerImpl : public Controller {
  private:
-  Parser &parser;
   interactor::Interactor &interactor;
+  Parser &parser;
 
  public:
   ControllerImpl(interactor::Interactor &interactor, Parser &parser) : interactor { interactor }, parser { parser } {}
