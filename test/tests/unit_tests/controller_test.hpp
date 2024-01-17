@@ -11,39 +11,30 @@
 using namespace testing;
 using namespace home;
 using namespace controller;
+using namespace interactor;
 
 class MockParser : public Parser {
  public:
-  MOCK_METHOD((HashTable<std::string, std::vector<char>>), parse, (const std::string &), (override));
+  MOCK_METHOD((HashTable<std::string, std::string>), parse, (const std::string &), (override));
+};
+class MockInteractor : public Interactor {
+ public:
+  MOCK_METHOD((std::pair<size_t, size_t>), encodeAndSave, ((const HashTable<std::string, std::string> &)), (override));
+  MOCK_METHOD((std::string), decodeAndGet, (const std::string &), (override));
 };
 class ControllerTest : public Test {
- private:
-  MockParser parser;
-  std::unique_ptr<ControllerImpl> controller;
-  std::string data;
-  bool is_threw_exception;
-
  public:
-  void SetUp() override {
-    is_threw_exception = false;
-    controller.reset(new ControllerImpl { parser });
-  }
+  ControllerImpl controller;
+  MockInteractor interactor;
+  MockParser parser;
 
-  void givenNumberOfCallOfParse(size_t num) { EXPECT_CALL(parser, parse).Times(num); }
-  void whenControllerIsSaving() {
-    try {
-      controller->save(data);
-    } catch (...) {
-      is_threw_exception = true;
-    }
-  }
-  void thenControllerShouldNotThrowException() { ASSERT_EQ(is_threw_exception, false); }
+  ControllerTest() : controller { interactor, parser } {}
 };
 
-TEST_F(ControllerTest, Call_parse_one_time) {
-  givenNumberOfCallOfParse(1);
-  whenControllerIsSaving();
-  thenControllerShouldNotThrowException();
+TEST_F(ControllerTest, Call_save_call_parse_and_encode_and_save) {
+  EXPECT_CALL(parser, parse(_));
+  EXPECT_CALL(interactor, encodeAndSave(_));
+  controller.save({});
 }
 
 #endif

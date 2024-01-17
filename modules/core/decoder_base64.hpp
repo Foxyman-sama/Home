@@ -4,13 +4,14 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <ranges>
+#include <string>
 
 #include "crypto.hpp"
-#include "decoder.hpp"
 
 namespace home::crypto {
 
-class Base64Decoder : public Decoder, public Crypto {
+class Base64Decoder : public crypto::Crypto<std::string> {
  private:
   static constexpr std::array<std::uint8_t, 256> decode_table {
     0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64,
@@ -28,24 +29,24 @@ class Base64Decoder : public Decoder, public Crypto {
     0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64,
     0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64, 0x64
   };
-
   static constexpr size_t quadruple_size { 4 };
-  std::vector<char> unpadded_encoded;
+  std::string unpadded_encoded;
   size_t number_of_quadruples;
 
  public:
-  std::vector<char> decode(const std::vector<char> &data);
+  virtual std::string decode(const std::string &str);
 
  private:
-  void setUp(const std::vector<char> &data) noexcept override;
+  std::string tryDecode(const std::string &str);
+  void setUp(const std::string &str) noexcept override;
 
   void decodeFullQuadruples();
   void decodeQuadruplesByIndex(size_t index);
   std::array<std::uint8_t, 3> decodeQuad(char a, char b, char c, char d);
 
   void decodeRemainingCharsIfExist();
-  void decodeTwoRemainingChars(const std::vector<char> &last_quadruple);
-  void decodeThreeRemainingChars(const std::vector<char> &last_quadruple);
+  void decodeTwoRemainingChars(const std::string &last_quadruple);
+  void decodeThreeRemainingChars(const std::string &last_quadruple);
 };
 
 }  // namespace home::crypto

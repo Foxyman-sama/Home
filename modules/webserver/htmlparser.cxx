@@ -2,19 +2,19 @@
 
 namespace home::webserver {
 
-HashTable<std::string, std::vector<char>> HTMLParser::parse(const std::string& str) {
+HashTable<std::string, std::string> HTMLParser::parse(const std::string& str) {
   try {
     return tryParse(str);
   } catch (...) {
     throw;
   }
 }
-HashTable<std::string, std::vector<char>> HTMLParser::tryParse(const std::string& str) {
+HashTable<std::string, std::string> HTMLParser::tryParse(const std::string& str) {
   if (str.empty() == true) {
     throw std::runtime_error { "The data are empty." };
   }
 
-  HashTable<std::string, std::vector<char>> result;
+  HashTable<std::string, std::string> result;
   for (offset = str.find(delim); isLastBoundary(str) == false; offset = str.find(delim, offset + delim.size())) {
     result.emplace(parseFile(str));
   }
@@ -26,7 +26,7 @@ bool HTMLParser::isLastBoundary(const std::string& src) {
   return src.find(delim, pos_for_search_next_delim) == std::string::npos;
 }
 
-std::pair<std::string, std::vector<char>> HTMLParser::parseFile(const std::string& str) {
+std::pair<std::string, std::string> HTMLParser::parseFile(const std::string& str) {
   auto filename { parseFilename(str) };
   auto data { parseData(str) };
   return { filename, data };
@@ -43,19 +43,10 @@ std::pair<size_t, size_t> HTMLParser::find(const std::string& str, const std::st
 }
 std::string HTMLParser::extract(const std::string& str, size_t beg, size_t end) { return str.substr(beg, end - beg); }
 
-std::vector<char> HTMLParser::parseData(const std::string& str) {
+std::string HTMLParser::parseData(const std::string& str) {
   auto [pos_beg, pos_end] { find(str, data_matcher_beg, delim) };
   auto pos_end_without_ending_character { pos_end - 1 };
-  auto data { extract(str, pos_beg, pos_end_without_ending_character) };
-  return stringToVector(data);
-}
-std::vector<char> HTMLParser::stringToVector(const std::string& str) {
-  std::vector<char> result;
-  result.reserve(str.length());
-  for (auto&& ch : str) {
-    result.emplace_back(ch);
-  }
-
+  auto result { extract(str, pos_beg, pos_end_without_ending_character) };
   return result;
 }
 

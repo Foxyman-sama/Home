@@ -3,13 +3,13 @@
 
 #include <array>
 #include <cstdint>
+#include <string>
 
 #include "crypto.hpp"
-#include "encoder.hpp"
 
 namespace home::crypto {
 
-class Base64Encoder : public Encoder, public Crypto {
+class Base64Encoder : public crypto::Crypto<std::string> {
  private:
   static constexpr std::array<char, 64> encode_table { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                                                        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -20,18 +20,18 @@ class Base64Encoder : public Encoder, public Crypto {
   size_t number_of_tripplets;
 
  public:
-  std::vector<char> encode(const std::vector<char> &data) override;
+  virtual std::string encode(const std::string &str);
 
  private:
-  std::vector<char> tryEncode(const std::vector<char> &data);
-  void setUp(const std::vector<char> &data) noexcept override;
-  void encodeFullTripplets(const std::vector<char> &data);
-  void encodeTrippletByIndex(const std::vector<char> &data, int index);
+  std::string tryEncode(const std::string &str);
+  void setUp(const std::string &str) noexcept override;
+  void encodeFullTripplets(const std::string &str);
+  void encodeTrippletByIndex(const std::string &str, int index);
   std::array<char, 4> encodeTripplet(std::uint8_t a, std::uint8_t b = 0, std::uint8_t c = 0);
 
-  void encodeRemainingCharsIfExist(const std::vector<char> &data);
-  void encodeTwoRemainingChars(const std::vector<char> &data);
-  void encodeOneRemainingChar(const std::vector<char> &data);
+  void encodeRemainingCharsIfExist(const std::string &str);
+  void encodeTwoRemainingChars(const std::string &str);
+  void encodeOneRemainingChar(const std::string &str);
   void appendPadding(size_t number_of_padding);
 };
 

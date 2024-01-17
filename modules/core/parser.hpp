@@ -10,7 +10,7 @@ namespace home::controller {
 
 class Parser {
  public:
-  virtual HashTable<std::string, std::vector<char>> parse(const std::string &str) = 0;
+  virtual HashTable<std::string, std::string> parse(const std::string &str) = 0;
 };
 
 }  // namespace home::controller

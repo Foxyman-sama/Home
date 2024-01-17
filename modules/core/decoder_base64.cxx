@@ -2,19 +2,31 @@
 
 namespace home::crypto {
 
-std::vector<char> Base64Decoder::decode(const std::vector<char> &data) {
-  setUp(data);
+std::string Base64Decoder::decode(const std::string &str) {
+  try {
+    return tryDecode(str);
+  } catch (...) {
+    throw;
+  }
+}
+std::string Base64Decoder::tryDecode(const std::string &str) {
+  setUp(str);
   decodeFullQuadruples();
   decodeRemainingCharsIfExist();
   return container;
 }
-void Base64Decoder::setUp(const std::vector<char> &data) noexcept {
-  auto last_unpadded_char { std::find(std::begin(data), std::end(data), '=') };
-  unpadded_encoded = { std::begin(data), last_unpadded_char };
+void Base64Decoder::setUp(const std::string &str) noexcept {
+  if (str.find('=') != std::string::npos) {
+    unpadded_encoded = { str.begin(), str.begin() + str.find('=') };
+  } else {
+    unpadded_encoded = { str.begin(), str.end() };
+  }
+
   data_size = unpadded_encoded.size();
   number_of_quadruples = unpadded_encoded.size() / quadruple_size;
   container.clear();
-  container.reserve(((number_of_quadruples + 2) * 3) / quadruple_size);
+  // "*3" is reserved for tripplets and we need to divide into quadruple_size because size will decrease
+  container.reserve((number_of_quadruples * 3) / quadruple_size);
 }
 
 void Base64Decoder::decodeFullQuadruples() {
@@ -46,11 +58,11 @@ void Base64Decoder::decodeRemainingCharsIfExist() {
     decodeThreeRemainingChars(last_quadruple);
   }
 }
-void Base64Decoder::decodeTwoRemainingChars(const std::vector<char> &last_quadruple) {
+void Base64Decoder::decodeTwoRemainingChars(const std::string &last_quadruple) {
   const auto bytes { decodeQuad(last_quadruple[0], last_quadruple[1], 'A', 'A') };
   append(bytes, 1);
 }
-void Base64Decoder::decodeThreeRemainingChars(const std::vector<char> &last_quadruple) {
+void Base64Decoder::decodeThreeRemainingChars(const std::string &last_quadruple) {
   const auto bytes { decodeQuad(last_quadruple[0], last_quadruple[1], last_quadruple[2], 'A') };
   append(bytes, 2);
 }
