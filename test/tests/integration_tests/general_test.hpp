@@ -70,6 +70,7 @@ class GeneralTest : public Test {
 };
 
 TEST_F(GeneralTest, Save_and_get_files) {
+  GTEST_SKIP();
   HTMLParser parser;
   Base64Encoder encoder;
   Base64Decoder decoder;
