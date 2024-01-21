@@ -3,7 +3,9 @@
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 
 #include "modules/core/controller.hpp"
 
@@ -20,7 +22,9 @@ using tcp = boost::asio::ip::tcp;
 
 class MockController : public Controller {
  public:
-} class WebServer {
+  MOCK_METHOD((HashTable<std::string, std::string>), save, (const std::string&), (override));
+};
+class WebServer {
  private:
   net::tcp::acceptor acceptor;
 
@@ -29,11 +33,11 @@ class MockController : public Controller {
 
   net::tcp::socket accept() { return acceptor.accept(); }
 
-  void handle(net::tcp::socket& socket) {
+  net::http::request<net::http::string_body> read(net::tcp::socket& socket) {
     net::flat_buffer buffer;
-    net::http::request<net::http::string_body> res;
-    net::http::read(socket, buffer, res);
-    std::cout << res << '\n';
+    net::http::request<net::http::string_body> req;
+    net::http::read(socket, buffer, req);
+    return req;
   }
 };
 
@@ -45,33 +49,45 @@ class WebServerTest : public Test {
     net::tcp_stream stream;
     std::string ip;
     std::string port;
+    std::string message;
+    std::mutex mutex;
+    std::condition_variable& cv;
+    bool& ready;
 
    public:
-    TestConnection(const std::string& ip, const std::string& port)
-        : stream { io }, ip { std::move(ip) }, port { std::move(port) } {
-      std::thread th { [this] {
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-
-        net::tcp::resolver resolver { io };
-        const auto endpoint { resolver.resolve(this->ip, this->port) };
-        stream.connect(endpoint);
-      } };
-      th.detach();
-    }
+    TestConnection(const std::string& ip, const std::string& port, const std::string& message,
+                   std::condition_variable& cv, bool& ready)
+        : stream { io }, ip { ip }, port { port }, message { message }, cv { cv }, ready { ready } {}
     ~TestConnection() {
       net::error_code ec;
       stream.socket().shutdown(net::tcp::socket::shutdown_both, ec);
     }
 
-    void sendStringRequest(std::string message) {
-      std::thread th { [=, this] {
+    void connect() {
+      std::thread { [this] {
+        std::unique_lock lk { mutex };
+        cv.wait(lk, [this] { return ready == true; });
         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        net::tcp::resolver resolver { io };
+        const auto endpoint { resolver.resolve(this->ip, this->port) };
+        stream.connect(endpoint);
+        ready = false;
+      } }.detach();
+    }
+    void send() {
+      std::thread th { [this] {
+        std::unique_lock lk { mutex };
+        cv.wait(lk, [this] { return ready == true; });
+        std::this_thread::sleep_for(std::chrono::seconds(3));
 
         net::http::request<net::http::string_body> req { net::http::verb::get, "/", 10 };
         req.set(net::http::field::host, ip);
         req.set(net::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set(net::http::field::content_length, std::to_string(message.size()));
         req.body() = message;
         net::http::write(stream, req);
+        ready = false;
       } };
       th.detach();
     }
@@ -81,19 +97,37 @@ class WebServerTest : public Test {
   std::unique_ptr<WebServer> server;
   std::unique_ptr<TestConnection> connection;
   net::tcp::socket socket { io };
+  net::http::request<net::http::string_body> received_req;
   std::string message;
+  std::condition_variable cv;
+  bool ready = false;
 
  public:
   void givenPortAndMessage(const std::string& port, const std::string& message) {
     server.reset(new WebServer { io, std::stoi(port) });
-    connection.reset(new TestConnection { "127.0.0.1", port });
+    connection.reset(new TestConnection { "127.0.0.1", port, message, cv, ready });
     this->message = message;
   }
 
-  void whenServerIsAcceptingConnection() { socket = server->accept(); }
-  void whenServerIsSendingMessage() { server->send(socket, message); }
+  void whenServerIsAcceptingConnection() {
+    connection->connect();
+    unlock();
+    socket = server->accept();
+  }
+  void whenServerIsAcceptingRequest() {
+    connection->send();
+    unlock();
+    received_req = server->read(socket);
+  }
 
   void thenSocketShouldBeOpen() { ASSERT_EQ(socket.is_open(), true); }
+  void thenReceivedRequestShouldContainMessage() { ASSERT_EQ(received_req.body(), message); }
+
+ private:
+  void unlock() {
+    ready = true;
+    cv.notify_one();
+  }
 };
 
 TEST_F(WebServerTest, Connecting_is_correct) {
@@ -101,11 +135,11 @@ TEST_F(WebServerTest, Connecting_is_correct) {
   whenServerIsAcceptingConnection();
   thenSocketShouldBeOpen();
 }
-TEST_F(WebServerTest, Sending_message_is_correct) {
-  givenPortAndMessage("9090", "Hello");
+TEST_F(WebServerTest, Sending_to_server_is_correct) {
+  givenPortAndMessage("9090", "Test message!");
   whenServerIsAcceptingConnection();
-  whenServerIsSendingMessage();
-  thenSocketShouldBeOpen();
+  whenServerIsAcceptingRequest();
+  thenReceivedRequestShouldContainMessage();
 }
 
 #endif
