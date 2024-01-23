@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "modules/core/controller.hpp"
+#include "utility/reader.hpp"
 
 using namespace testing;
 using namespace home::controller;
@@ -25,21 +26,29 @@ class MockController : public Controller {
 class WebServer {
  private:
   net::tcp::acceptor acceptor;
+  Controller& controller;
 
  public:
-  WebServer(net::io_context& io, int port) : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } } {}
+  WebServer(net::io_context& io, int port, Controller& controller)
+      : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } }, controller { controller } {}
 
   net::tcp::socket accept() { return acceptor.accept(); }
 
-  net::http::request<net::http::string_body> read(net::tcp::socket& socket) {
+  void handle(net::tcp::socket& socket) {
     net::flat_buffer buffer;
     net::http::request<net::http::string_body> req;
     net::http::read(socket, buffer, req);
-    return req;
-  }
+    if (req.target() == "/") {
+      net::http::file_body::value_type body;
+      net::error_code ec;
+      body.open("build/index.html", net::file_mode::scan, ec);
 
-  void write(net::tcp::socket& socket, net::http::response<net::http::file_body>& response) {
-    net::http::write(socket, response);
+      net::http::response<net::http::file_body> res { std::piecewise_construct, std::make_tuple(std::move(body)),
+                                                      std::make_tuple(net::http::status::ok, req.version()) };
+      res.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
+      res.set(net::http::field::content_type, "text/html");
+      // TODO - continue
+    }
   }
 };
 
@@ -68,89 +77,56 @@ class WebServerTest : public Test {
       } }.detach();
     }
 
-    void send(std::string message) {
-      std::thread { [message, this] {
+    void handle(std::string& actual) {
+      std::thread { [&, this] {
         net::http::request<net::http::string_body> req { net::http::verb::get, "/", 10 };
         req.set(net::http::field::host, ip);
         req.set(net::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-        req.set(net::http::field::content_length, std::to_string(message.size()));
-        req.body() = message;
+        req.set(net::http::field::content_length, std::to_string(4));
+        req.body() = "Test";
 
         net::error_code ec;
         net::http::write(stream, req, ec);
-      } }.detach();
-    }
 
-    net::http::response<net::http::string_body> read() {
-      net::flat_buffer buffer;
-      net::http::response<net::http::string_body> res;
-      net::error_code ec;
-      net::http::read(stream, buffer, res, ec);
-      return res;
+        net::flat_buffer buffer;
+        net::http::response<net::http::string_body> res;
+        net::http::read(stream, buffer, res);
+        actual = res.body().data();
+      } }.detach();
     }
   };
 
   net::io_context io;
   std::unique_ptr<WebServer> server;
   std::unique_ptr<TestConnection> connection;
-  net::tcp::socket socket { io };
-  net::http::request<net::http::string_body> req_server;
-  net::http::response<net::http::string_body> res_client;
-  std::string message;
+  std::string actual;
+  std::string expected;
+  Reader reader;
+  MockController controller;
 
  public:
-  void givenMessage(const std::string& message) {
-    server.reset(new WebServer { io, 9090 });
+  void givenExpectedHTMLFile(const std::string& expected) {
+    server.reset(new WebServer { io, 9090, controller });
     connection.reset(new TestConnection { "127.0.0.1", "9090" });
-    this->message = message;
+    reader.open("build/", expected);
+    this->expected = reader.createStreamAndReadFile(expected);
   }
 
-  void whenServerIsAcceptingConnection() {
+  void whenServerIsHanding() {
     connection->connect();
-    socket = server->accept();
-  }
-  void whenServerIsAcceptingRequest() {
-    connection->send(message);
-    req_server = server->read(socket);
-  }
-  void whenServerIsSendingResponse() {
-    std::thread { [this] {
-      net::http::file_body::value_type body;
-      net::error_code ec;
-      body.open(message.c_str(), net::file_mode::scan, ec);
 
-      net::http::response<net::http::file_body> res { std::piecewise_construct, std::make_tuple(std::move(body)),
-                                                      std::make_tuple(net::http::status::ok, 10) };
-      res.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
-      res.set(net::http::field::content_type, "text/html");
-      res.content_length(body.size());
-      server->write(socket, res);
-    } }.detach();
-    res_client = connection->read();
+    auto socket { server->accept() };
+    connection->handle(actual);
+    server->handle(socket);
   }
 
-  void thenSocketShouldBeOpen() { ASSERT_EQ(socket.is_open(), true); }
-  void thenReceivedRequestShouldContainMessage() { ASSERT_EQ(req_server.body(), message); }
-  void thenReceivedResponseShouldBeEqual() { /*ASSERT_EQ(req_server.body(), res_client.body());*/
-  }
+  void thenActualShouldBeEqualExpected() { ASSERT_EQ(actual, expected); }
 };
 
-TEST_F(WebServerTest, Connecting_is_correct) {
-  givenMessage("");
-  whenServerIsAcceptingConnection();
-  thenSocketShouldBeOpen();
-}
-TEST_F(WebServerTest, Sending_to_server_is_correct) {
-  givenMessage("Test message!");
-  whenServerIsAcceptingConnection();
-  whenServerIsAcceptingRequest();
-  thenReceivedRequestShouldContainMessage();
-}
-TEST_F(WebServerTest, Receiving_from_server_is_correct) {
-  givenMessage("build/test.html");
-  whenServerIsAcceptingConnection();
-  whenServerIsSendingResponse();
-  thenReceivedRequestShouldContainMessage();
+TEST_F(WebServerTest, Get_request_return_index_html) {
+  givenExpectedHTMLFile("index.html");
+  whenServerIsHanding();
+  thenActualShouldBeEqualExpected();
 }
 
 #endif
