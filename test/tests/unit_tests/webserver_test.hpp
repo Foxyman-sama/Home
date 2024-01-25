@@ -5,12 +5,14 @@
 #include <boost/beast.hpp>
 #include <memory>
 
-#include "modules/core/controller.hpp"
+#include "modules/core/controller_impl.hpp"
+#include "modules/core/hash_table.hpp"
 #include "utility/generators.hpp"
 #include "utility/reader.hpp"
 
 using namespace testing;
-using namespace home::controller;
+using namespace home;
+using namespace controller;
 
 namespace net {
 
@@ -36,34 +38,41 @@ class WebServer {
   net::tcp::socket accept() { return acceptor.accept(); }
 
   void handle(net::tcp::socket& socket) {
+    auto req { receive(socket) };
+    if ((req.method() == net::http::verb::get) && (req.target() == "/")) {
+      auto res { createResponseWithIndexHTML() };
+      net::http::write(socket, res);
+    } else if (req.method() == net::http::verb::post) {
+      auto result { controller.save(req.body()) };
+
+      net::http::response<net::http::string_body> res { net::http::status::ok, req.version() };
+      res.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
+      res.set(net::http::field::content_type, "text/plain");
+      res.body() += result.at(title_number_of_files.data()) + "\n";
+      res.body() += result.at(title_amount_of_data.data()) + "\n";
+      res.content_length(res.body().size());
+      net::http::write(socket, res);
+    }
+  }
+
+ private:
+  net::http::request<net::http::string_body> receive(net::tcp::socket& socket) {
     net::flat_buffer buffer;
     net::http::request<net::http::string_body> req;
     net::http::read(socket, buffer, req);
-    if ((req.method() == net::http::verb::get) && (req.target() == "/")) {
-      net::http::file_body::value_type body;
-      net::error_code ec;
-      body.open("build/index.html", net::file_mode::scan, ec);
+    return req;
+  }
 
-      net::http::response<net::http::file_body> res { std::piecewise_construct, std::make_tuple(std::move(body)),
-                                                      std::make_tuple(net::http::status::ok, req.version()) };
-      res.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
-      res.set(net::http::field::content_type, "text/html");
-      res.content_length(body.size());
-      net::http::write(socket, res);
-    } else if (req.method() == net::http::verb::post) {
-      controller.save(req.body());
+  net::http::response<net::http::file_body> createResponseWithIndexHTML() {
+    net::http::file_body::value_type body;
+    net::error_code ec;
+    body.open("build/index.html", net::file_mode::scan, ec);
 
-      net::http::file_body::value_type body;
-      net::error_code ec;
-      body.open("build/index.html", net::file_mode::scan, ec);
-
-      net::http::response<net::http::file_body> res { std::piecewise_construct, std::make_tuple(std::move(body)),
-                                                      std::make_tuple(net::http::status::ok, req.version()) };
-      res.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
-      res.set(net::http::field::content_type, "text/html");
-      res.content_length(body.size());
-      net::http::write(socket, res);
-    }
+    net::http::response<net::http::file_body> res { std::piecewise_construct, std::make_tuple(std::move(body)),
+                                                    std::make_tuple(net::http::status::ok, req.version()) };
+    res.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(net::http::field::content_type, "text/html");
+    res.content_length(body.size());
   }
 };
 
@@ -94,7 +103,7 @@ class WebServerTest : public Test {
       } }.detach();
     }
 
-    void handle(std::string& actual) {
+    void get(std::string& actual) {
       std::thread { [&, this] {
         net::http::request<net::http::string_body> req { net::http::verb::get, target, 10 };
         req.set(net::http::field::host, ip);
@@ -110,7 +119,7 @@ class WebServerTest : public Test {
       } }.detach();
     }
 
-    void post() {
+    void post(std::string& actual) {
       std::thread { [&, this] {
         net::http::request<net::http::string_body> req { net::http::verb::post, target, 10 };
         req.set(net::http::field::host, ip);
@@ -126,6 +135,7 @@ class WebServerTest : public Test {
         net::flat_buffer buffer;
         net::http::response<net::http::string_body> res;
         net::http::read(stream, buffer, res);
+        actual = res.body().data();
       } }.detach();
     }
   };
@@ -142,7 +152,7 @@ class WebServerTest : public Test {
  public:
   void givenExpectedHTMLFileAndTarget(const std::string& expected, const std::string& target) {
     server.reset(new WebServer { io, 9090, controller });
-    connection.reset(new TestConnection { "127.0.0.1", "9090", "/" });
+    connection.reset(new TestConnection { "127.0.0.1", "9090", target });
     reader.open("build/", expected);
     this->expected = reader.createStreamAndReadFile(expected);
   }
@@ -151,17 +161,19 @@ class WebServerTest : public Test {
     connection->connect();
 
     auto socket { server->accept() };
-    connection->handle(actual);
+    connection->get(actual);
     server->handle(socket);
   }
   void whenClientIsSendingPost() {
-    EXPECT_CALL(controller, save(_));
+    EXPECT_CALL(controller, save(_))
+        .WillOnce(Return(HashTable<std::string, std::string> { { title_number_of_files.data(), std::to_string(1) },
+                                                               { title_amount_of_data.data(), std::to_string(1) } }));
     connection->connect();
 
     auto socket { server->accept() };
-    connection->handle(actual);
+    connection->get(actual);
     server->handle(socket);
-    connection->post();
+    connection->post(actual);
     server->handle(socket);
   }
 
