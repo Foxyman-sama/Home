@@ -3,6 +3,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
+#include <format>
+#include <future>
 #include <memory>
 
 #include "modules/core/controller_impl.hpp"
@@ -32,30 +34,26 @@ class WebServer {
   Controller& controller;
 
  public:
-  WebServer(net::io_context& io, int port, Controller& controller)
+  WebServer(net::io_context& io, unsigned short port, Controller& controller)
       : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } }, controller { controller } {}
 
   net::tcp::socket accept() { return acceptor.accept(); }
 
-  void handle(net::tcp::socket& socket) {
-    auto req { receive(socket) };
-    if ((req.method() == net::http::verb::get) && (req.target() == "/")) {
-      auto res { createResponseWithIndexHTML() };
-      net::http::write(socket, res);
-    } else if (req.method() == net::http::verb::post) {
-      auto result { controller.save(req.body()) };
-
-      net::http::response<net::http::string_body> res { net::http::status::ok, req.version() };
-      res.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
-      res.set(net::http::field::content_type, "text/plain");
-      res.body() += result.at(title_number_of_files.data()) + "\n";
-      res.body() += result.at(title_amount_of_data.data()) + "\n";
-      res.content_length(res.body().size());
-      net::http::write(socket, res);
+  void handle(auto& socket) {
+    auto request { receive(socket) };
+    if (isGetRequestAndIndexTarget(request)) {
+      sendIndexHTML(socket);
+    } else if (isPostRequest(request)) {
+      processAndSendAnswer(socket, request);
     }
   }
 
  private:
+  bool isGetRequestAndIndexTarget(const auto& request) const noexcept {
+    return (request.method() == net::http::verb::get) && (request.target() == "/");
+  }
+  bool isPostRequest(const auto& request) const noexcept { return request.method() == net::http::verb::post; }
+
   net::http::request<net::http::string_body> receive(net::tcp::socket& socket) {
     net::flat_buffer buffer;
     net::http::request<net::http::string_body> req;
@@ -63,16 +61,46 @@ class WebServer {
     return req;
   }
 
+  void sendIndexHTML(auto& socket) {
+    auto response { createResponseWithIndexHTML() };
+    net::http::write(socket, response);
+  }
   net::http::response<net::http::file_body> createResponseWithIndexHTML() {
-    net::http::file_body::value_type body;
+    auto index_html { readFile("build/index.html") };
+    return makeResponseWithHTMLFile(index_html);
+  }
+  net::http::file_body::value_type readFile(const auto& filename) {
+    net::http::file_body::value_type file;
     net::error_code ec;
-    body.open("build/index.html", net::file_mode::scan, ec);
+    file.open(filename, net::file_mode::scan, ec);
+    return file;
+  }
+  net::http::response<net::http::file_body> makeResponseWithHTMLFile(auto& file) {
+    net::http::response<net::http::file_body> response { std::piecewise_construct, std::make_tuple(std::move(file)),
+                                                         std::make_tuple(net::http::status::ok, 10) };
+    response.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
+    response.set(net::http::field::content_type, "text/html");
+    response.content_length(file.size());
+    return response;
+  }
 
-    net::http::response<net::http::file_body> res { std::piecewise_construct, std::make_tuple(std::move(body)),
-                                                    std::make_tuple(net::http::status::ok, req.version()) };
-    res.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(net::http::field::content_type, "text/html");
-    res.content_length(body.size());
+  void processAndSendAnswer(auto& socket, const auto& request) {
+    auto result { controller.save(request.body()) };
+    auto response { makeResponseWithHashTable(result) };
+    net::http::write(socket, response);
+  }
+  net::http::response<net::http::string_body> makeResponseWithHashTable(
+      const HashTable<std::string, std::string>& hash_table) {
+    net::http::response<net::http::string_body> response { net::http::status::ok, 10 };
+    response.set(net::http::field::server, BOOST_BEAST_VERSION_STRING);
+    response.set(net::http::field::content_type, "text/plain");
+    for (auto&& [key, value] : hash_table) {
+      auto formated { std::format("{} - {}", key, value) };
+      response.body() += formated;
+      response.content_length(response.body().size() + formated.size());
+    }
+
+    return response;
   }
 };
 
@@ -84,11 +112,9 @@ class WebServerTest : public Test {
     net::tcp_stream stream;
     std::string ip;
     std::string port;
-    std::string target;
 
    public:
-    TestConnection(const std::string& ip, const std::string& port, const std::string& target)
-        : stream { io }, ip { ip }, port { port }, target { target } {}
+    TestConnection(const std::string& ip, const std::string& port) : stream { io }, ip { ip }, port { port } {}
     ~TestConnection() {
       net::error_code ec;
       stream.socket().shutdown(net::tcp::socket::shutdown_both, ec);
@@ -104,39 +130,39 @@ class WebServerTest : public Test {
     }
 
     void get(std::string& actual) {
-      std::thread { [&, this] {
-        net::http::request<net::http::string_body> req { net::http::verb::get, target, 10 };
-        req.set(net::http::field::host, ip);
-        req.set(net::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-
-        net::error_code ec;
-        net::http::write(stream, req, ec);
-
-        net::flat_buffer buffer;
-        net::http::response<net::http::string_body> res;
-        net::http::read(stream, buffer, res);
-        actual = res.body().data();
-      } }.detach();
+      std::thread { [&, this] { handle(net::http::verb::get, actual); } }.detach();
     }
 
-    void post(std::string& actual) {
-      std::thread { [&, this] {
-        net::http::request<net::http::string_body> req { net::http::verb::post, target, 10 };
-        req.set(net::http::field::host, ip);
-        req.set(net::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+    void post(std::string& actual, std::string html) {
+      std::thread { [&, this] { handle(net::http::verb::post, actual, html); } }.detach();
+    }
 
-        auto [html, data] { generateHTMLWithFiles<std::string, std::string>(10, 1'000) };
-        req.set(net::http::field::content_length, std::to_string(std::get<0>(html).size()));
-        req.body() = std::get<0>(html);
+   private:
+    void handle(net::http::verb verb, std::string& actual, std::string html = "") {
+      auto request { makeRequest(verb, html) };
+      sendRequest(request);
 
-        net::error_code ec;
-        net::http::write(stream, req, ec);
-
-        net::flat_buffer buffer;
-        net::http::response<net::http::string_body> res;
-        net::http::read(stream, buffer, res);
-        actual = res.body().data();
-      } }.detach();
+      auto response { receiveResponse() };
+      actual = response.body();
+    }
+    void sendRequest(auto&& request) noexcept {
+      net::error_code ec;
+      net::http::write(stream, std::move(request), ec);
+    }
+    net::http::request<net::http::string_body> makeRequest(net::http::verb verb,
+                                                           const std::string& body = "") const noexcept {
+      net::http::request<net::http::string_body> request { verb, "/", 10 };
+      request.set(net::http::field::host, ip);
+      request.set(net::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+      request.set(net::http::field::content_length, std::to_string(body.size()));
+      request.body() = body;
+      return request;
+    }
+    net::http::response<net::http::string_body> receiveResponse() {
+      net::flat_buffer buffer;
+      net::http::response<net::http::string_body> response;
+      net::http::read(stream, buffer, response);
+      return response;
     }
   };
 
@@ -150,11 +176,11 @@ class WebServerTest : public Test {
   MockController controller;
 
  public:
-  void givenExpectedHTMLFileAndTarget(const std::string& expected, const std::string& target) {
+  void givenExpectedHTMLFile(const std::string& filename) {
     server.reset(new WebServer { io, 9090, controller });
-    connection.reset(new TestConnection { "127.0.0.1", "9090", target });
-    reader.open("build/", expected);
-    this->expected = reader.createStreamAndReadFile(expected);
+    connection.reset(new TestConnection { "127.0.0.1", "9090" });
+    reader.open("build/", filename);
+    expected = reader.createStreamAndReadFile(filename);
   }
 
   void whenClientIsSendingGet() {
@@ -163,30 +189,42 @@ class WebServerTest : public Test {
     auto socket { server->accept() };
     connection->get(actual);
     server->handle(socket);
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
   }
   void whenClientIsSendingPost() {
-    EXPECT_CALL(controller, save(_))
-        .WillOnce(Return(HashTable<std::string, std::string> { { title_number_of_files.data(), std::to_string(1) },
-                                                               { title_amount_of_data.data(), std::to_string(1) } }));
+    auto [generated, _] { generateHTMLWithFiles<std::string, std::string>(10, 1'000) };
+    auto html { std::get<0>(generated) };
+    auto number_of_files { std::get<1>(generated) };
+    auto amount_of_data { std::get<2>(generated) };
+    auto hash_table { HashTable<std::string, std::string> {
+        { title_number_of_files.data(), std::to_string(number_of_files) },
+        { title_amount_of_data.data(), std::to_string(amount_of_data) } } };
+    EXPECT_CALL(controller, save(html)).WillOnce(Return(hash_table));
+    for (auto&& [key, value] : hash_table) {
+      auto formated { std::format("{} - {}", key, value) };
+      expected += formated;
+    }
+
     connection->connect();
 
     auto socket { server->accept() };
     connection->get(actual);
     server->handle(socket);
-    connection->post(actual);
+    connection->post(actual, html);
     server->handle(socket);
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
   }
 
   void thenActualShouldBeEqualExpected() { ASSERT_EQ(actual, expected); }
 };
 
 TEST_F(WebServerTest, Get_request_return_index_html) {
-  givenExpectedHTMLFileAndTarget("index.html", "/");
+  givenExpectedHTMLFile("index.html");
   whenClientIsSendingGet();
   thenActualShouldBeEqualExpected();
 }
 TEST_F(WebServerTest, Send_post_request_return_accept_html) {
-  givenExpectedHTMLFileAndTarget("index.html", "/");
+  givenExpectedHTMLFile("/");
   whenClientIsSendingPost();
   thenActualShouldBeEqualExpected();
 }
