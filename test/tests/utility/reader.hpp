@@ -24,19 +24,19 @@ class Reader {
     fin >> result;
     return result;
   }
-
-  std::string createStreamAndReadFile(const std::string &filename) {
-    std::ifstream file_stream { folder + filename, std::ios_base::binary };
-    file_stream.seekg(0, file_stream.end);
-
-    auto size { file_stream.tellg() };
-    file_stream.seekg(0, file_stream.beg);
-
-    std::string result;
-    result.resize(size);
-    file_stream.read(result.data(), size);
-    return result;
-  }
 };
+
+static std::string readFile(const std::string &filename) {
+  std::ifstream file_stream { filename, std::ios_base::binary };
+  file_stream.seekg(0, file_stream.end);
+
+  auto size { file_stream.tellg() };
+  file_stream.seekg(0, file_stream.beg);
+
+  std::string result;
+  result.resize(size);
+  file_stream.read(result.data(), size);
+  return result;
+}
 
 #endif
