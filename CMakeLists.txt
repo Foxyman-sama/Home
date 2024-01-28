@@ -19,7 +19,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	modules/webserver
 	${CMAKE_BINARY_DIR}
 	${Boost_INCLUDE_DIRS})
-  
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})  
+
 if (Testing)
 	enable_testing()
 	add_subdirectory(test)
