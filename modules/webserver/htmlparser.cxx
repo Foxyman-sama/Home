@@ -15,7 +15,7 @@ HashTable<std::string, std::string> HTMLParser::tryParse(const std::string& str)
   }
 
   HashTable<std::string, std::string> result;
-  for (offset = str.find(delim); isLastBoundary(str) == false; offset = str.find(delim, offset + delim.size())) {
+  for (offset = str.find(delim); isLastBoundary(str) == false; offset = str.find(delim, offset + 1)) {
     result.emplace(parseFile(str));
   }
 

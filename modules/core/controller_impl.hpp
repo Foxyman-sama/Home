@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 #include "controller.hpp"
-#include "modules/core/interactor.hpp"
+#include "interactor.hpp"
 #include "parser.hpp"
 
 namespace home::controller {

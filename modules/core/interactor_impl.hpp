@@ -25,12 +25,12 @@ class DataCounter {
 };
 class InteractorImpl : public Interactor {
  private:
-  crypto::Base64Encoder &encoder;
-  crypto::Base64Decoder &decoder;
-  container::JSONContainer &container;
+  crypto::Base64Encoder encoder;
+  crypto::Base64Decoder decoder;
+  container::JSONContainer container;
 
  public:
-  InteractorImpl(crypto::Base64Encoder &encoder, crypto::Base64Decoder &decoder, container::JSONContainer &container);
+  InteractorImpl(container::JSONContainer &container);
 
   std::pair<size_t, size_t> encodeAndSave(const HashTable<std::string, std::string> &files) override;
 

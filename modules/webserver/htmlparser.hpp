@@ -15,7 +15,7 @@ class HTMLParser : public Parser {
   static constexpr std::string_view name_matcher_beg { "filename=\"" };
   static constexpr std::string_view name_matcher_end { "\"" };
   static constexpr std::string_view data_matcher_beg { "\r\n\r\n" };
-  static constexpr std::string_view delim { "------WebKitFormBoundary" };
+  static constexpr std::string_view delim { "-----------------------------" };
   size_t offset;
 
  public:

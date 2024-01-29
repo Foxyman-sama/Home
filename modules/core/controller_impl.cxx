@@ -1,5 +1,7 @@
 #include "controller_impl.hpp"
 
+#include <iostream>
+
 namespace home::controller {
 
 HashTable<std::string, std::string> ControllerImpl::save(const std::string &str) {
