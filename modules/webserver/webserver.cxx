@@ -33,6 +33,13 @@ void WebServer::handle(net::tcp::socket& socket) {
     sendAnswer(socket, ErrorMessages::bad_request, net::http::status::bad_request);
   }
 }
+net::http::request<net::http::string_body> WebServer::receive(net::tcp::socket& socket) {
+  net::flat_buffer buffer;
+  net::http::request_parser<net::http::string_body> request;
+  request.body_limit(100'000'000);
+  net::http::read(socket, buffer, request);
+  return request.release();
+}
 constexpr bool WebServer::isRequest(const net::http::request<net::http::string_body>& request,
                                     net::http::verb verb) const noexcept {
   return request.method() == verb;

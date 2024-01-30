@@ -28,13 +28,7 @@ class WebServer {
   void handle(net::tcp::socket& socket);
 
  private:
-  net::http::request<net::http::string_body> receive(net::tcp::socket& socket) {
-    net::flat_buffer buffer;
-    net::http::request_parser<net::http::string_body> request;
-    request.body_limit(100'000'000);
-    net::http::read(socket, buffer, request);
-    return request.release();
-  }
+  net::http::request<net::http::string_body> receive(net::tcp::socket& socket);
   constexpr bool isRequest(const net::http::request<net::http::string_body>& request,
                            net::http::verb verb) const noexcept;
   void sendByTarget(net::tcp::socket& socket, const std::string_view& target);

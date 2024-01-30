@@ -8,6 +8,8 @@ int main(int argc, char **argv) { return startTests(argc, argv); }
 
 #else
 
+#include <iostream>
+
 #include "modules/core/controller_impl.hpp"
 #include "modules/core/interactor_impl.hpp"
 #include "modules/webserver/htmlparser.hpp"
@@ -22,7 +24,17 @@ int main(int _argc, char **_p_argv) {
   home::webserver::WebServer server { io, 9090, controller };
   while (true) {
     auto socket { server.accept() };
-    server.handle(socket);
+    while (true) {
+      try {
+        server.handle(socket);
+      } catch (...) {
+        std::cerr << "Dropped\n";
+        break;
+      }
+    }
+
+    home::webserver::net::error_code ec;
+    socket.shutdown(home::webserver::net::tcp::socket::shutdown_both, ec);
     container.extractToFile();
   }
 }

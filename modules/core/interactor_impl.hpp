@@ -27,7 +27,7 @@ class InteractorImpl : public Interactor {
  private:
   crypto::Base64Encoder encoder;
   crypto::Base64Decoder decoder;
-  container::JSONContainer container;
+  container::JSONContainer &container;
 
  public:
   InteractorImpl(container::JSONContainer &container);
