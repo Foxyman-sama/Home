@@ -158,5 +158,10 @@ TEST_F(WebServerPostTest, Empty_request_return_error) {
   whenClientIsSendingPost();
   thenActualAndExpectedDataShouldBeEqual();
 }
+TEST_F(WebServerPostTest, Body_limit_is_higher_than_1_000_000) {
+  givenNumberOfFilesAndMaxFileSize(1, 1'000'000);
+  whenClientIsSendingPost();
+  thenActualAndExpectedDataShouldBeEqual();
+}
 
 #endif

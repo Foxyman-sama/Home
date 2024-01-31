@@ -12,6 +12,8 @@ HashTable<std::string, std::string> HTMLParser::parse(const std::string& str) {
 HashTable<std::string, std::string> HTMLParser::tryParse(const std::string& str) {
   if (str.empty() == true) {
     throw std::runtime_error { "The data are empty." };
+  } else if (str.find("filename") == std::string::npos) {
+    throw std::runtime_error { "The data are broken." };
   }
 
   HashTable<std::string, std::string> result;
