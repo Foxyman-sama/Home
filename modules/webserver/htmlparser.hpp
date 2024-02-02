@@ -5,17 +5,13 @@
 #include <string>
 
 #include "../core/parser.hpp"
+#include "html_definitions.hpp"
 
 namespace home::webserver {
 
-using namespace controller;
-
-class HTMLParser : public Parser {
+class HTMLParser : public controller::Parser {
  private:
-  static constexpr std::string_view name_matcher_beg { "filename=\"" };
-  static constexpr std::string_view name_matcher_end { "\"" };
-  static constexpr std::string_view data_matcher_beg { "\r\n\r\n" };
-  static constexpr std::string_view delim { "-----------------------------" };
+  std::string_view current_delim;
   size_t offset;
 
  public:
@@ -23,7 +19,8 @@ class HTMLParser : public Parser {
 
  private:
   HashTable<std::string, std::string> tryParse(const std::string &str);
-  bool isLastBoundary(const std::string &src);
+  void selectBoundary(const std::string &str);
+  bool isEnd(const std::string &src);
   std::pair<std::string, std::string> parseFile(const std::string &str);
   std::string parseFilename(const std::string &str);
   std::pair<size_t, size_t> find(const std::string &str, const std::string_view &start, const std::string_view &end);
@@ -32,6 +29,7 @@ class HTMLParser : public Parser {
   std::string parseData(const std::string &str);
 };
 
-}  // namespace home::webserver
+}  // namespace
+   // home::webserver
 
 #endif

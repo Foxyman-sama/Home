@@ -20,7 +20,7 @@ using namespace webserver;
 
 class MockController : public Controller {
  public:
-  MOCK_METHOD((HashTable<std::string, std::string>), save, (const std::string&), (override));
+  MOCK_METHOD((HashTable<std::string, std::string>), save, (const std::string &), (override));
 };
 class TestConnection {
  private:
@@ -30,7 +30,7 @@ class TestConnection {
   std::string port;
 
  public:
-  TestConnection(const std::string& ip = "127.0.0.1", const std::string& port = "9090")
+  TestConnection(const std::string &ip = "127.0.0.1", const std::string &port = "9090")
       : stream { io }, ip { ip }, port { port } {}
   ~TestConnection() {
     net::error_code ec;
@@ -43,7 +43,7 @@ class TestConnection {
     stream.connect(endpoint);
   }
 
-  std::string get(const std::string& target) {
+  std::string get(const std::string &target) {
     auto request { makeRequestHeader(net::http::verb::get, target) };
     net::http::write(stream, request);
 
@@ -51,7 +51,7 @@ class TestConnection {
     return response.body();
   }
 
-  std::string post(const std::string& body) {
+  std::string post(const std::string &body) {
     auto request { makeRequestHeader(net::http::verb::post, "/") };
     request.content_length(body.size());
     request.body() = body;
@@ -62,7 +62,7 @@ class TestConnection {
   }
 
  private:
-  net::http::request<net::http::string_body> makeRequestHeader(net::http::verb verb, const std::string& target) {
+  net::http::request<net::http::string_body> makeRequestHeader(net::http::verb verb, const std::string &target) {
     net::http::request<net::http::string_body> request { verb, target, 10 };
     request.set(net::http::field::host, ip);
     request.set(net::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
@@ -95,7 +95,7 @@ class WebServerGetTest : public WebServerTest {
   Reader reader;
 
  public:
-  void givenTargetAndExpected(const std::string& target, const std::string& expected) {
+  void givenTargetAndExpected(const std::string &target, const std::string &expected) {
     this->target = target;
     this->expected = expected;
   }
@@ -125,7 +125,7 @@ class WebServerPostTest : public WebServerTest {
     return_controller.emplace("amount_of_data", std::to_string(std::get<2>(generated)));
     EXPECT_CALL(controller, save(_)).WillOnce(Return(return_controller));
   }
-  void givenExpected(const std::string& expected) { this->expected = expected; }
+  void givenExpected(const std::string &expected) { this->expected = expected; }
 
   void whenClientIsSendingPost() {
     auto wait_connection { std::async(std::launch::async, &TestConnection::connect, &connection) };
@@ -153,13 +153,13 @@ TEST_F(WebServerPostTest, Correct_request_return_correct_info_about_files) {
   whenClientIsSendingPost();
   thenActualAndExpectedDataShouldBeEqual();
 }
-TEST_F(WebServerPostTest, Empty_request_return_error) {
-  givenExpected(ErrorMessages::empty_post.data());
+TEST_F(WebServerPostTest, Body_limit_is_higher_than_1_000_000) {
+  givenNumberOfFilesAndMaxFileSize(1, 1'000'000);
   whenClientIsSendingPost();
   thenActualAndExpectedDataShouldBeEqual();
 }
-TEST_F(WebServerPostTest, Body_limit_is_higher_than_1_000_000) {
-  givenNumberOfFilesAndMaxFileSize(1, 1'000'000);
+TEST_F(WebServerPostTest, Empty_post_request_return_error) {
+  givenExpected(ErrorMessages::bad_request.data());
   whenClientIsSendingPost();
   thenActualAndExpectedDataShouldBeEqual();
 }

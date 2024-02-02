@@ -2,18 +2,6 @@
 
 namespace home::webserver {
 
-struct ErrorMessages {
-  static constexpr std::string_view bad_target { "Unknown target" };
-  static constexpr std::string_view bad_request { "Unknown method" };
-  static constexpr std::string_view empty_post { "The post request is empty" };
-};
-struct HTMLPaths {
-  static constexpr std::string_view index { "build/index.html" };
-};
-struct Targets {
-  static constexpr std::string_view default_target { "/" };
-};
-
 WebServer::WebServer(net::io_context& io, unsigned short port, controller::Controller& controller)
     : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } }, controller { controller } {}
 
@@ -34,12 +22,12 @@ void WebServer::sendByTarget(net::tcp::socket& socket) {
   if (receiver.getTarget() == Targets::default_target) {
     readAndSendHTML(socket, HTMLPaths::index);
   } else {
-    send(socket, ErrorMessages::bad_target, net::http::status::bad_request);
+    sender.send(socket, ErrorMessages::bad_target, net::http::status::bad_request);
   }
 }
 void WebServer::readAndSendHTML(net::tcp::socket& socket, const std::string_view& path) {
   auto file { readFile(path) };
-  send<net::http::file_body>(socket, file, net::http::status::ok);
+  sender.send(socket, file, net::http::status::ok);
 }
 net::http::file_body::value_type WebServer::readFile(const std::string_view& path) {
   net::http::file_body::value_type file;
@@ -49,9 +37,14 @@ net::http::file_body::value_type WebServer::readFile(const std::string_view& pat
 }
 
 void WebServer::handleAndSendInfo(net::tcp::socket& socket) {
+  auto body { receiver.getBody() };
+  if (isHTMLBroken(body) == true) {
+    sender.send(socket, ErrorMessages::bad_request, net::http::status::bad_request);
+  }
+
   auto info { controller.save(receiver.getBody()) };
   auto formated { makeStringWithInfo(info) };
-  send(socket, formated, net::http::status::ok);
+  sender.send(socket, formated, net::http::status::ok);
 }
 std::string WebServer::makeStringWithInfo(const HashTable<std::string, std::string>& info) {
   std::string result;

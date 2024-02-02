@@ -40,11 +40,6 @@ class ParserTest : public Test {
   void thenParserShouldThrowException() { ASSERT_EQ(is_threw_exception, true); }
 };
 
-TEST_F(ParserTest, Parsing_empty_throws_exception) {
-  givenNumberOfFilesAndMaxSize(0, 0);
-  whenParserIsParsing();
-  thenParserShouldThrowException();
-}
 TEST_F(ParserTest, Parsing_100_files_with_max_size_1_is_correct) {
   givenNumberOfFilesAndMaxSize(100, 1);
   whenParserIsParsing();
