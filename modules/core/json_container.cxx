@@ -9,15 +9,17 @@ JSONContainer::JSONContainer(const std::string_view& path) : path { path } {
   }
 }
 
-JSONContainer::~JSONContainer() {
+JSONContainer::~JSONContainer() { extractToFile(); }
+
+void JSONContainer::write(const std::string& filename, const std::string& filedata) { json.put(filename, filedata); }
+
+std::string JSONContainer::read(const std::string& filename) { return json.get<std::string>(filename); }
+
+void JSONContainer::extractToFile() noexcept {
   if (path.empty() == false) {
     std::ofstream fout { path.data() };
     json::write_json(fout, json);
   }
 }
-
-void JSONContainer::write(const std::string& filename, const std::string& filedata) { json.put(filename, filedata); }
-
-std::string JSONContainer::read(const std::string& filename) { return json.get<std::string>(filename); }
 
 }  // namespace home::container

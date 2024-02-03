@@ -2,9 +2,7 @@
 
 namespace home::interactor {
 
-InteractorImpl::InteractorImpl(crypto::Base64Encoder &encoder, crypto::Base64Decoder &decoder,
-                               container::JSONContainer &container)
-    : encoder { encoder }, decoder { decoder }, container { container } {}
+InteractorImpl::InteractorImpl(container::JSONContainer &container) : container { container } {}
 
 std::pair<size_t, size_t> InteractorImpl::encodeAndSave(const HashTable<std::string, std::string> &files) {
   try {

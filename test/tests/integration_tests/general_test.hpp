@@ -70,12 +70,9 @@ class GeneralTest : public Test {
 };
 
 TEST_F(GeneralTest, Save_and_get_files) {
-  GTEST_SKIP();
   HTMLParser parser;
-  Base64Encoder encoder;
-  Base64Decoder decoder;
   JSONContainer container { "build/test.json" };
-  InteractorImpl interactor { encoder, decoder, container };
+  InteractorImpl interactor { container };
   ControllerImpl controller { interactor, parser };
 
   auto returned_info { controller.save(expected_data) };

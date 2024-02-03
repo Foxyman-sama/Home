@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "modules/core/hash_table.hpp"
+#include "hash_table.hpp"
 
 namespace home::interactor {
 

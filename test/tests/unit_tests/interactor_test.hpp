@@ -30,22 +30,17 @@ class MockContainer : public JSONContainer {
 class InteractorTest : public Test {
  public:
   InteractorImpl interactor;
-  MockEncoder encoder;
-  MockDecoder decoder;
   MockContainer container;
 
-  InteractorTest() : interactor { encoder, decoder, container } {}
+  InteractorTest() : interactor { container } {}
 };
 
 TEST_F(InteractorTest, Call_encode_and_save_call_encode_and_write) {
-  auto &first_call { EXPECT_CALL(encoder, encode(_)).Times(2) };
-  EXPECT_CALL(container, write(_, _)).After(first_call);
+  EXPECT_CALL(container, write(_, _));
   interactor.encodeAndSave(generateFiles<std::string, std::string>(1, 1));
 }
 TEST_F(InteractorTest, Call_decode_and_get_call_read_and_decode) {
-  auto &first_call { EXPECT_CALL(encoder, encode(_)) };
-  auto &second_call { EXPECT_CALL(container, read(_)).After(first_call) };
-  EXPECT_CALL(decoder, decode(_)).After(second_call);
+  EXPECT_CALL(container, read(_));
   interactor.decodeAndGet("");
 }
 

@@ -1,7 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.20)
 project(Home)
 
-option(Testing "Tests" TRUE)
+option(Testing "Tests" ON)
 configure_file(config.h.in config.h)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,7 +16,7 @@ add_executable(${PROJECT_NAME}
 	${src})
 target_include_directories(${PROJECT_NAME} PRIVATE
 	modules/core
-	modules/webserver
+	modules/webserverP
 	${CMAKE_BINARY_DIR}
 	${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})  

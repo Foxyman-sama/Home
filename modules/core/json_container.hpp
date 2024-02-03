@@ -27,6 +27,8 @@ class JSONContainer {
   virtual void write(const std::string &filename, const std::string &filedata);
 
   virtual std::string read(const std::string &filename);
+
+  void extractToFile() noexcept;
 };
 
 }  // namespace home::container
