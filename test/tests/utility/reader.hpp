@@ -26,7 +26,7 @@ class Reader {
   }
 };
 
-static std::string readFile(const std::string &filename) {
+inline std::string readFile(const std::string &filename) {
   std::ifstream file_stream { filename, std::ios_base::binary };
   file_stream.seekg(0, file_stream.end);
 

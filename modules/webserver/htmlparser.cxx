@@ -13,7 +13,7 @@ HashTable<std::string, std::string> HTMLParser::tryParse(const std::string &str)
   selectBoundary(str);
 
   HashTable<std::string, std::string> result;
-  for (offset = str.find(current_delim); isEnd(str) == false; offset = str.find(current_delim, offset + 1)) {
+  for (; isEnd(str) == false; offset = findNextBoundary(str)) {
     result.emplace(parseFile(str));
   }
 
@@ -26,15 +26,13 @@ void HTMLParser::selectBoundary(const std::string &str) {
     current_delim = Delims::firefox_boundary;
   }
 }
-bool HTMLParser::isEnd(const std::string &src) {
-  auto pos_for_search_next_delim { offset + 1 };
-  return src.find(current_delim, pos_for_search_next_delim) == std::string::npos;
+size_t HTMLParser::findNextBoundary(const std::string &str) { return str.find(current_delim, offset + 1); }
+bool HTMLParser::isEnd(const std::string &str) {
+  return str.find(current_delim, findNextBoundary(str)) == std::string::npos;
 }
 
 std::pair<std::string, std::string> HTMLParser::parseFile(const std::string &str) {
-  auto filename { parseFilename(str) };
-  auto data { parseData(str) };
-  return { filename, data };
+  return { parseFilename(str), parseData(str) };
 }
 std::string HTMLParser::parseFilename(const std::string &str) {
   auto [pos_beg, pos_end] { find(str, Delims::name_matcher_beg, Delims::name_matcher_end) };

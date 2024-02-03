@@ -1,17 +1,9 @@
 #ifndef HTML_TRANSFER_HPP
 #define HTML_TRANSFER_HPP
 
-#include <boost/beast.hpp>
+#include "net_lib.hpp"
 
 namespace home::webserver {
-
-namespace net {
-
-using namespace boost::asio;
-using namespace boost::beast;
-using tcp = boost::asio::ip::tcp;
-
-}  // namespace net
 
 class Receiver {
  private:
@@ -20,19 +12,19 @@ class Receiver {
   net::http::request<net::http::string_body> request;
 
  public:
-  void receive(net::tcp::socket& socket);
+  void receive(net::Socket &socket);
 
   net::http::verb getMethod() const noexcept;
   std::string_view getTarget() const noexcept;
-  net::http::request<net::http::string_body>& getRequest() noexcept;
-  std::string& getBody() noexcept;
+  net::http::request<net::http::string_body> &getRequest() noexcept;
+  std::string &getBody() noexcept;
 };
 class Sender {
  public:
-  void send(net::tcp::socket& socket, net::http::file_body::value_type& file,
+  void send(net::Socket &socket, net::http::file_body::value_type &&file,
             net::http::status status = net::http::status::ok);
 
-  void send(net::tcp::socket& socket, const std::string_view& str, net::http::status status = net::http::status::ok);
+  void send(net::Socket &socket, const std::string_view &str, net::http::status status = net::http::status::ok);
 
  private:
   net::http::response<net::http::file_body> makeResponseHeaderWithFileBody(net::http::status status);

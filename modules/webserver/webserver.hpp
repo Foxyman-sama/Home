@@ -11,25 +11,25 @@ namespace home::webserver {
 
 class WebServer {
  private:
-  net::tcp::acceptor acceptor;
-  controller::Controller& controller;
+  net::Acceptor acceptor;
+  controller::Controller &controller;
   Receiver receiver;
   Sender sender;
 
  public:
-  explicit WebServer(net::io_context& io, unsigned short port, controller::Controller& controller);
+  explicit WebServer(net::io_context &io, unsigned short port, controller::Controller &controller);
 
-  net::tcp::socket accept();
+  net::Socket accept();
 
-  void handle(net::tcp::socket& socket);
+  void handle(net::Socket &socket);
 
  private:
-  void sendByTarget(net::tcp::socket& socket);
-  void readAndSendHTML(net::tcp::socket& socket, const std::string_view& path);
-  net::http::file_body::value_type readFile(const std::string_view& path);
+  void handleGet(net::Socket &socket);
+  void readAndSendHTML(net::Socket &socket, const std::string_view &path);
+  net::http::file_body::value_type readFile(const std::string_view &path);
 
-  void handleAndSendInfo(net::tcp::socket& socket);
-  std::string makeStringWithInfo(const HashTable<std::string, std::string>& info);
+  void handlePost(net::Socket &socket);
+  std::string makeStringWithInfo(const HashTable<std::string, std::string> &info);
 };
 
 }  // namespace home::webserver

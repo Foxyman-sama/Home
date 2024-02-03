@@ -12,7 +12,7 @@ namespace home::webserver {
 class HTMLParser : public controller::Parser {
  private:
   std::string_view current_delim;
-  size_t offset;
+  size_t offset { 0 };
 
  public:
   HashTable<std::string, std::string> parse(const std::string &str);
@@ -20,7 +20,8 @@ class HTMLParser : public controller::Parser {
  private:
   HashTable<std::string, std::string> tryParse(const std::string &str);
   void selectBoundary(const std::string &str);
-  bool isEnd(const std::string &src);
+  size_t findNextBoundary(const std::string &str);
+  bool isEnd(const std::string &str);
   std::pair<std::string, std::string> parseFile(const std::string &str);
   std::string parseFilename(const std::string &str);
   std::pair<size_t, size_t> find(const std::string &str, const std::string_view &start, const std::string_view &end);
@@ -29,7 +30,6 @@ class HTMLParser : public controller::Parser {
   std::string parseData(const std::string &str);
 };
 
-}  // namespace
-   // home::webserver
+}  // namespace home::webserver
 
 #endif
