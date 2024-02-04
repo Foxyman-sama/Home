@@ -17,7 +17,6 @@ void WebServer::handle(net::Socket &socket) {
     sender.send(socket, ErrorMessages::bad_request, net::http::status::bad_request);
   }
 }
-
 void WebServer::handleGet(net::Socket &socket) {
   if (receiver.getTarget() == Targets::default_target) {
     readAndSendHTML(socket, HTMLPaths::index);
@@ -34,7 +33,7 @@ net::http::file_body::value_type WebServer::readFile(const std::string_view &pat
   file.open(path.data(), net::file_mode::scan, ec);
   return file;
 }
-
+// TODO - AND AFTER THE PARSER MODULE REFACTORING, NEED THIS MODULE REFACTOR!
 void WebServer::handlePost(net::Socket &socket) {
   auto body { receiver.getBody() };
   if (isHTMLBroken(body) == true) {
