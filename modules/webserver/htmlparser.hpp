@@ -33,7 +33,6 @@ class Extractor {
 class HTMLParser : public controller::Parser {
  private:
   std::string_view current_delim;
-  size_t offset { 0 };
 
  public:
   HashTable<std::string, std::string> parse(const std::string &str);

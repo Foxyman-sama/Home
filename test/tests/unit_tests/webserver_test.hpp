@@ -80,12 +80,13 @@ class WebServerTest : public Test {
  protected:
   net::io_context io;
   MockController controller;
+  HTMLContainer container;
   WebServer server;
   TestConnection connection;
   std::string actual;
   std::string expected;
 
-  WebServerTest() : server { io, 9090, controller } {}
+  WebServerTest() : server { io, 9090, controller, container } { container.emplace("/", "build/index.html"); }
 
   void thenActualAndExpectedDataShouldBeEqual() { ASSERT_EQ(actual, expected); }
 };

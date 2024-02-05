@@ -18,12 +18,6 @@ struct ErrorMessages {
   static constexpr std::string_view bad_request { "Unknown method" };
   static constexpr std::string_view empty_post { "The post request is empty" };
 };
-struct HTMLPaths {
-  static constexpr std::string_view index { "build/index.html" };
-};
-struct Targets {
-  static constexpr std::string_view default_target { "/" };
-};
 
 inline bool isHTMLBroken(const std::string &html) noexcept {
   if (html.empty() == true) {

@@ -2,8 +2,11 @@
 
 namespace home::webserver {
 
-WebServer::WebServer(net::io_context &io, unsigned short port, controller::Controller &controller)
-    : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } }, controller { controller } {}
+WebServer::WebServer(net::io_context &io, unsigned short port, controller::Controller &controller,
+                     HTMLContainer &container)
+    : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } },
+      controller { controller },
+      container { container } {}
 
 net::Socket WebServer::accept() { return acceptor.accept(); }
 
@@ -18,22 +21,13 @@ void WebServer::handle(net::Socket &socket) {
   }
 }
 void WebServer::handleGet(net::Socket &socket) {
-  if (receiver.getTarget() == Targets::default_target) {
-    readAndSendHTML(socket, HTMLPaths::index);
+  const auto target { receiver.getTarget() };
+  if (container.isContained(target)) {
+    sender.send(socket, container.get(target));
   } else {
     sender.send(socket, ErrorMessages::bad_target, net::http::status::bad_request);
   }
 }
-void WebServer::readAndSendHTML(net::Socket &socket, const std::string_view &path) {
-  sender.send(socket, readFile(path), net::http::status::ok);
-}
-net::http::file_body::value_type WebServer::readFile(const std::string_view &path) {
-  net::http::file_body::value_type file;
-  net::error_code ec;
-  file.open(path.data(), net::file_mode::scan, ec);
-  return file;
-}
-// TODO - AND AFTER THE PARSER MODULE REFACTORING, NEED THIS MODULE REFACTOR!
 void WebServer::handlePost(net::Socket &socket) {
   auto body { receiver.getBody() };
   if (isHTMLBroken(body) == true) {
