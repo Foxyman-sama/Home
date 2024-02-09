@@ -9,14 +9,14 @@ namespace home::webserver {
 
 class HTMLContainer {
  private:
-  std::unordered_map<std::string_view, std::string_view> html_by_target;
+  std::unordered_map<std::string_view, std::string_view> html_by_targetFile;
 
  public:
-  void emplace(const std::string_view &target, const std::string_view &filepath);
+  void emplace(const std::string_view &targetFile, const std::string_view &filepath);
 
-  boost::beast::http::file_body::value_type get(const std::string_view &target);
+  boost::beast::http::file_body::value_type get(const std::string_view &targetFile);
 
-  bool isContained(const std::string_view &target) const noexcept;
+  bool isContained(const std::string_view &targetFile) const noexcept;
 };
 
 }  // namespace home::webserver

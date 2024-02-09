@@ -34,7 +34,7 @@ class HTMLMaker {
     data.append(1, '\n');
   }
 
-  std::tuple<std::string, size_t, size_t> getGeneratedParamsAndIfNotEmptyAddLastBounary() {
+  std::tuple<std::string, size_t, size_t> getFileGeneratedParamsAndIfNotEmptyAddLastBounary() {
     if (data.empty() == false) {
       appendBoundary();
     }

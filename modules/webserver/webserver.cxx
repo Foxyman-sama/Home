@@ -37,7 +37,7 @@ void WebServer::handlePost(net::Socket &socket) {
     sender.send(socket, makeStringWithInfo(info), net::http::status::ok);
   }
 }
-std::string WebServer::makeStringWithInfo(const HashTable<std::string, std::string> &info) {
+std::string WebServer::makeStringWithInfo(const std::unordered_map<std::string, std::string> &info) {
   std::string result;
   for (auto &&[key, value] : info) {
     result += std::format("{} - {}\n", key, value);

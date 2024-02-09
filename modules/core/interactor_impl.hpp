@@ -32,15 +32,15 @@ class InteractorImpl : public Interactor {
  public:
   InteractorImpl(container::JSONContainer &container);
 
-  std::pair<size_t, size_t> encodeAndSave(const HashTable<std::string, std::string> &files) override;
+  std::pair<size_t, size_t> save(const std::unordered_map<std::string, std::string> &files) override;
 
-  std::string decodeAndGet(const std::string &filename) override;
+  std::string get(const std::string &filename) override;
 
  private:
-  std::pair<size_t, size_t> tryEncodeAndSaveFiles(const HashTable<std::string, std::string> &files);
-  void encodeAndSaveFile(const std::string &filename, const std::string &filedata);
+  std::pair<size_t, size_t> trysaveFilesFiles(const std::unordered_map<std::string, std::string> &files);
+  void saveFilesFile(const std::string &filename, const std::string &filedata);
 
-  std::string tryDecodeAndGet(const std::string &filename);
+  std::string trygetFile(const std::string &filename);
 };
 
 }  // namespace home::interactor

@@ -1,61 +1,68 @@
 #ifndef TEST_JSONOUTPUT_HPP
 #define TEST_JSONOUTPUT_HPP
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "test_base.hpp"
 
-#include <ranges>
-
-#include "modules/core/json_container.hpp"
-
-using namespace testing;
-using namespace home;
-using namespace interactor;
-using namespace container;
-using std::ranges::for_each;
-using std::ranges::views::zip;
-
-class JSONContainerTest : public Test, private JSONContainer {
+class JSONContainerTest : public Test {
  private:
+  JSONContainer container;
   std::vector<std::string> filenames;
-  std::vector<std::string> expected;
-  std::vector<std::string> actual;
+  std::vector<std::string> data;
+  std::vector<std::pair<std::string, std::string>> expected;
+  std::vector<std::pair<std::string, std::string>> actual;
 
  public:
-  void givenFilenamesAndData(const std::vector<std::string> &filenames, const std::vector<std::string> &data) {
-    assert(filenames.size() == data.size() && "The sizes are different.");
-    this->filenames = filenames;
-    this->expected = data;
+  void appendFilenames(std::vector<std::string> range) { filenames.insert(end(filenames), begin(range), end(range)); }
+  void appendData(std::vector<std::string> range) { data.insert(end(data), begin(range), end(range)); }
+  void combine() {
+    for_each(zip(filenames, data), [this](const auto &pair) { expected.emplace_back(pair); });
+  }
+  void write() {
+    for_each(expected, [this](const auto &pair) { container.write(pair.first, pair.second); });
+  }
+  void read() {
+    for_each(filenames, [this](const auto &filename) {
+      const auto data { container.read(filename) };
+      actual.emplace_back(filename, data);
+    });
   }
 
-  void whenJSONContainerIsWriting() {
-    auto zipped { zip(filenames, expected) };
-    for_each(zipped, [this](auto &&tuple) { write(std::get<0>(tuple), std::get<1>(tuple)); });
-  }
-  void whenJSONContainerIsReading() {
-    for_each(filenames, [&](auto &&filename) { actual.emplace_back(read(filename)); });
-  }
-
-  void thenActualAndExpectedDataShouldBeEqual() { ASSERT_EQ(actual, expected); }
+  void assertActualIsEqualExpected() { ASSERT_EQ(actual, expected); }
 };
 
-TEST_F(JSONContainerTest, JSONContainer_write_and_read_empty) {
-  givenFilenamesAndData({}, {});
-  whenJSONContainerIsWriting();
-  whenJSONContainerIsReading();
-  thenActualAndExpectedDataShouldBeEqual();
+TEST_F(JSONContainerTest, Writing_and_reading_empty) {
+  appendFilenames({});
+  appendData({});
+  combine();
+
+  write();
+  read();
+
+  assertActualIsEqualExpected();
 }
-TEST_F(JSONContainerTest, JSONContainer_write_and_read_one_char) {
-  givenFilenamesAndData({ "1" }, { "1" });
-  whenJSONContainerIsWriting();
-  whenJSONContainerIsReading();
-  thenActualAndExpectedDataShouldBeEqual();
-}
-TEST_F(JSONContainerTest, JSONContainer_write_and_read_five_words) {
-  givenFilenamesAndData({ "1", "2", "3", "4", "5" }, { "Hello", "my", "beautiful", "world", "..." });
-  whenJSONContainerIsWriting();
-  whenJSONContainerIsReading();
-  thenActualAndExpectedDataShouldBeEqual();
+TEST_F(JSONContainerTest, Writing_and_reading_lorem_ipsum) {
+  appendFilenames(
+      { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur molestie commodo fringilla. Mauris "
+        "fermentum dui vel sapien elementum, quis dictum neque viverra. Suspendisse feugiat nisi id volutpat "
+        "imperdiet. Donec est odio, pellentesque eu condimentum vel, rhoncus vitae leo. Aenean dictum consectetur "
+        "ante, sit amet convallis urna auctor molestie. Mauris ut egestas lectus, eget ornare nunc. Duis et ligula vel "
+        "justo molestie dignissim vel fermentum purus. Praesent scelerisque molestie lacinia. Sed tristique, sapien "
+        "sit amet bibendum bibendum, arcu ipsum volutpat sapien, id tincidunt quam ipsum sed massa. Nam cursus rutrum "
+        "ultrices. " });
+  appendData(
+      { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur molestie commodo fringilla. Mauris "
+        "fermentum dui vel sapien elementum, quis dictum neque viverra. Suspendisse feugiat nisi id volutpat "
+        "imperdiet. Donec est odio, pellentesque eu condimentum vel, rhoncus vitae leo. Aenean dictum consectetur "
+        "ante, sit amet convallis urna auctor molestie. Mauris ut egestas lectus, eget ornare nunc. Duis et ligula vel "
+        "justo molestie dignissim vel fermentum purus. Praesent scelerisque molestie lacinia. Sed tristique, sapien "
+        "sit amet bibendum bibendum, arcu ipsum volutpat sapien, id tincidunt quam ipsum sed massa. Nam cursus rutrum "
+        "ultrices. " });
+  combine();
+
+  write();
+  read();
+
+  assertActualIsEqualExpected();
 }
 
 #endif

@@ -14,7 +14,7 @@ struct Delims {
   static constexpr std::string_view firefox_boundary { "-----------------------------" };
 };
 struct ErrorMessages {
-  static constexpr std::string_view bad_target { "Unknown target" };
+  static constexpr std::string_view bad_target { "Unknown targetFile" };
   static constexpr std::string_view bad_request { "Unknown method" };
   static constexpr std::string_view empty_post { "The post request is empty" };
 };
@@ -29,7 +29,7 @@ inline bool isHTMLBroken(const std::string &html) noexcept {
 
   return false;
 }
-
+// TODO - REFACTORING THIS MESS!
 }  // namespace  home::webserver
 
 #endif

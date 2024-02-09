@@ -1,18 +1,7 @@
 #ifndef TEST_INTERACTOR_HPP
 #define TEST_INTERACTOR_HPP
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include "modules/core/interactor_impl.hpp"
-#include "modules/core/json_container.hpp"
-#include "utility/generators.hpp"
-
-using namespace testing;
-using namespace home;
-using namespace interactor;
-using namespace crypto;
-using namespace container;
+#include "test_base.hpp"
 
 class MockEncoder : public Base64Encoder {
  public:
@@ -35,13 +24,13 @@ class InteractorTest : public Test {
   InteractorTest() : interactor { container } {}
 };
 
-TEST_F(InteractorTest, Call_encode_and_save_call_encode_and_write) {
+TEST_F(InteractorTest, Call_encode_and_saveFiles_call_encode_and_write) {
   EXPECT_CALL(container, write(_, _));
-  interactor.encodeAndSave(generateFiles<std::string, std::string>(1, 1));
+  interactor.save(generateFiles<std::string, std::string>(1, 1));
 }
-TEST_F(InteractorTest, Call_decode_and_get_call_read_and_decode) {
+TEST_F(InteractorTest, Call_decode_and_getFile_call_read_and_decode) {
   EXPECT_CALL(container, read(_));
-  interactor.decodeAndGet("");
+  interactor.get("");
 }
 
 #endif

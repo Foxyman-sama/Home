@@ -17,11 +17,8 @@ class JSONContainer {
   std::string_view path;
   json::ptree json;
 
- protected:
-  JSONContainer() = default;
-
  public:
-  JSONContainer(const std::string_view &path);
+  JSONContainer(const std::string_view &path = "");
   ~JSONContainer();
 
   virtual void write(const std::string &filename, const std::string &filedata);

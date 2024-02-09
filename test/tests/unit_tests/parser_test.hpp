@@ -16,8 +16,8 @@ class ParserTest : public Test {
  private:
   HTMLParser parser;
   std::string data;
-  HashTable<std::string, std::string> expected_data;
-  HashTable<std::string, std::string> actual_data;
+  std::unordered_map<std::string, std::string> expected_data;
+  std::unordered_map<std::string, std::string> actual_data;
   bool is_threw_exception;
 
  public:

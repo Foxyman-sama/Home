@@ -19,8 +19,8 @@ class EncoderDecoderTest : public Test {
  private:
   Base64Encoder encoder;
   Base64Decoder decoder;
-  HashTable<std::string, std::string> expected;
-  HashTable<std::string, std::string> actual;
+  std::unordered_map<std::string, std::string> expected;
+  std::unordered_map<std::string, std::string> actual;
 
  public:
   void givenNumberOfFilesAndMaxSizeOfThem(size_t number_of_files, size_t max_size) {

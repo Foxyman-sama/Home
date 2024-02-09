@@ -2,15 +2,14 @@
 #define PARSER_HPP
 
 #include <string>
+#include <unordered_map>
 #include <vector>
-
-#include "hash_table.hpp"
 
 namespace home::controller {
 
 class Parser {
  public:
-  virtual HashTable<std::string, std::string> parse(const std::string &str) = 0;
+  virtual std::unordered_map<std::string, std::string> parse(const std::string &str) = 0;
 };
 
 }  // namespace home::controller

@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "modules/core/controller_impl.hpp"
-#include "modules/core/hash_table.hpp"
 #include "modules/webserver/webserver.hpp"
 #include "utility/generators.hpp"
 #include "utility/reader.hpp"
@@ -20,7 +19,7 @@ using namespace webserver;
 
 class MockController : public Controller {
  public:
-  MOCK_METHOD((HashTable<std::string, std::string>), save, (const std::string &), (override));
+  MOCK_METHOD((std::unordered_map<std::string, std::string>), save, (const std::string &), (override));
 };
 class TestConnection {
  private:
@@ -43,8 +42,8 @@ class TestConnection {
     stream.connect(endpoint);
   }
 
-  std::string get(const std::string &target) {
-    auto request { makeRequestHeader(net::http::verb::get, target) };
+  std::string get(const std::string &targetFile) {
+    auto request { makeRequestHeader(net::http::verb::get, targetFile) };
     net::http::write(stream, request);
 
     auto response { read() };
@@ -62,8 +61,8 @@ class TestConnection {
   }
 
  private:
-  net::http::request<net::http::string_body> makeRequestHeader(net::http::verb verb, const std::string &target) {
-    net::http::request<net::http::string_body> request { verb, target, 10 };
+  net::http::request<net::http::string_body> makeRequestHeader(net::http::verb verb, const std::string &targetFile) {
+    net::http::request<net::http::string_body> request { verb, targetFile, 10 };
     request.set(net::http::field::host, ip);
     request.set(net::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     return request;
@@ -90,31 +89,31 @@ class WebServerTest : public Test {
 
   void thenActualAndExpectedDataShouldBeEqual() { ASSERT_EQ(actual, expected); }
 };
-class WebServerGetTest : public WebServerTest {
+class WebServergetFileTest : public WebServerTest {
  private:
-  std::string target;
+  std::string targetFile;
   Reader reader;
 
  public:
-  void givenTargetAndExpected(const std::string &target, const std::string &expected) {
-    this->target = target;
+  void givenTargetFileAndExpected(const std::string &targetFile, const std::string &expected) {
+    this->targetFile = targetFile;
     this->expected = expected;
   }
 
-  void whenClientIsGetting() {
+  void whenClientIsgetFileting() {
     auto wait_connection { std::async(std::launch::async, &TestConnection::connect, &connection) };
     auto socket { server.accept() };
     wait_connection.wait();
 
-    auto wait_getting { std::async(std::launch::async, &TestConnection::get, &connection, target) };
+    auto wait_getFileting { std::async(std::launch::async, &TestConnection::get, &connection, targetFile) };
     server.handle(socket);
-    actual = wait_getting.get();
+    actual = wait_getFileting.get();
   }
 };
 class WebServerPostTest : public WebServerTest {
  private:
   std::string html;
-  HashTable<std::string, std::string> return_controller;
+  std::unordered_map<std::string, std::string> return_controller;
 
  public:
   void givenNumberOfFilesAndMaxFileSize(size_t number_of_files, size_t max_file_size) {
@@ -139,17 +138,17 @@ class WebServerPostTest : public WebServerTest {
   }
 };
 
-TEST_F(WebServerGetTest, Correct_request_return_index_html) {
-  givenTargetAndExpected("/", readFile("build/index.html"));
-  whenClientIsGetting();
+TEST_F(WebServergetFileTest, Request_default_targetFile_return_index_html) {
+  givenTargetFileAndExpected("/", readFile("build/index.html"));
+  whenClientIsgetFileting();
   thenActualAndExpectedDataShouldBeEqual();
 }
-TEST_F(WebServerGetTest, Request_with_bad_target_return_error) {
-  givenTargetAndExpected("@", ErrorMessages::bad_target.data());
-  whenClientIsGetting();
+TEST_F(WebServergetFileTest, Request_with_bad_targetFile_return_error) {
+  givenTargetFileAndExpected("@", ErrorMessages::bad_target.data());
+  whenClientIsgetFileting();
   thenActualAndExpectedDataShouldBeEqual();
 }
-TEST_F(WebServerPostTest, Correct_request_return_correct_info_about_files) {
+TEST_F(WebServerPostTest, Request_return_correct_info_about_files) {
   givenNumberOfFilesAndMaxFileSize(100, 100);
   whenClientIsSendingPost();
   thenActualAndExpectedDataShouldBeEqual();
