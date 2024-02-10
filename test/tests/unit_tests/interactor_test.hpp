@@ -26,7 +26,7 @@ class InteractorTest : public Test {
 
 TEST_F(InteractorTest, Call_encode_and_saveFiles_call_encode_and_write) {
   EXPECT_CALL(container, write(_, _));
-  interactor.save(generateFiles<std::string, std::string>(1, 1));
+  interactor.save({ { "", "" } });
 }
 TEST_F(InteractorTest, Call_decode_and_getFile_call_read_and_decode) {
   EXPECT_CALL(container, read(_));

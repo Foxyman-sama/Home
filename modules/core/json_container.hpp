@@ -19,7 +19,6 @@ class JSONContainer {
 
  public:
   JSONContainer(const std::string_view &path = "");
-  ~JSONContainer();
 
   virtual void write(const std::string &filename, const std::string &filedata);
 

@@ -5,42 +5,33 @@
 
 #include "html_maker.hpp"
 
-template <typename Generated>
-class Random {
- private:
-  std::mt19937 seed;
-  std::uniform_int_distribution<Generated> range;
+namespace home::test_utility {
 
- public:
-  Random(Generated min, Generated max) : seed { std::random_device {}() }, range { min, max } {}
+template <typename Returned>
+[[nodiscard]] Returned randomize(const Returned start, const Returned end) noexcept {
+  std::mt19937 seed { std::random_device {}() };
+  std::uniform_int_distribution<Returned> range { start, end };
+  return range(seed);
+}
 
-  Generated get() noexcept { return range(seed); }
-};
+}  // namespace home::test_utility
 
-template <typename Key, typename Value>
-std::unordered_map<Key, Value> generateFiles(size_t number_of_files, size_t max_size) {
-  Random<size_t> number_random { 1, max_size };
-  Random<char> character_random {
-    std::numeric_limits<char>::min(),
-    std::numeric_limits<char>::max(),
-  };
-  std::unordered_map<Key, Value> result;
+std::unordered_map<std::string, std::string> generateFiles() {
+  using home::test_utility::randomize;
+
+  constexpr auto char_min { std::numeric_limits<char>::min() };
+  constexpr auto char_max { std::numeric_limits<char>::max() };
+  constexpr auto size_min { 1 };
+  constexpr auto size_max { 1'000 };
+  const auto number_of_files { randomize(1, 1'000) };
+  std::unordered_map<std::string, std::string> result;
   for (auto i { 0 }; i < number_of_files; ++i) {
-    Value data;
-    data.resize(number_random.get());
-    std::ranges::for_each(data, [&](auto &ch) { ch = character_random.get(); });
+    std::string data(randomize(size_min, size_max), '\0');
+    for_each(data, [&](auto &ch) { ch = randomize(char_min, char_max); });
     result.emplace(std::format("{}.bin", i), data);
   }
 
   return result;
-}
-template <typename Key, typename Value>
-std::pair<std::tuple<std::string, size_t, size_t>, std::unordered_map<Key, Value>> generateHTMLWithFiles(
-    size_t number_of_files, size_t max_size) {
-  auto files { generateFiles<Key, Value>(number_of_files, max_size) };
-  HTMLMaker maker;
-  std::ranges::for_each(files, [&](auto &&pair) { maker.appendFile(pair.first, pair.second); });
-  return { maker.getFileGeneratedParamsAndIfNotEmptyAddLastBounary(), files };
 }
 
 #endif

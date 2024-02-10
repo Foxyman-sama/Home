@@ -9,8 +9,6 @@ JSONContainer::JSONContainer(const std::string_view &path) : path { path } {
   }
 }
 
-JSONContainer::~JSONContainer() { extractToFile(); }
-
 void JSONContainer::write(const std::string &filename, const std::string &filedata) { json.put(filename, filedata); }
 
 std::string JSONContainer::read(const std::string &filename) { return json.get<std::string>(filename); }

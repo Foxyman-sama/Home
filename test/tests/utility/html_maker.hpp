@@ -8,11 +8,14 @@
 
 class HTMLMaker {
  private:
+  std::string boundary;
   std::string data;
   size_t number_of_files = 0;
   size_t size_of_files = 0;
 
  public:
+  HTMLMaker(std::string boundary) : boundary { boundary } {}
+
   void makeTextFileAndAppend(const std::string &filename, size_t size, const std::string &symbol) {
     ++number_of_files;
     size_of_files += size;
@@ -50,8 +53,7 @@ class HTMLMaker {
 
  private:
   void appendBoundary() {
-    data.append(6, '-');
-    data.append("WebKitFormBoundary");
+    data.append(boundary);
     data.append(1, '\n');
   }
   void appendFilename(const std::string &filename) {

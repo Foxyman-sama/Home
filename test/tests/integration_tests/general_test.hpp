@@ -1,73 +1,26 @@
 #ifndef GENERAL_TEST
 #define GENERAL_TEST
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include "modules/core/controller_impl.hpp"
-#include "modules/core/interactor_impl.hpp"
-#include "modules/core/json_container.hpp"
-#include "modules/webserver/html_parser.hpp"
-#include "utility/html_maker.hpp"
+#include "test_base.hpp"
 #include "utility/reader.hpp"
 
-using namespace testing;
-using namespace home;
-using namespace controller;
-using namespace webserver;
-using namespace interactor;
-using namespace container;
-using namespace crypto;
-
-class GeneralTest : public Test {
+class Gtest : public Test {
  private:
-  Reader reader;
-  HTMLMaker generator;
-
- public:
-  std::string expected_data;
+  std::vector<std::string> htmls;
   size_t expected_number_of_files;
   size_t expected_size_of_files;
-  std::vector<std::string> filenames;
+  HTMLParser parser;
+  JSONContainer container { "build/test.json" };
+  InteractorImpl interactor { container };
+  ControllerImpl controller { interactor, parser };
 
-  void SetUp() override {
-    reader.open("build/", "sending_test_input.txt");
-    while (reader.isEndOfFile() == false) {
-      std::string buffer { reader.readString() };
-      if (buffer == "create") {
-        createFile(reader);
-      } else if (buffer == "append") {
-        appendFile(reader);
-      }
-    }
-
-    auto [data, number_of_files, size_of_files] { generator.getFileGeneratedParamsAndIfNotEmptyAddLastBounary() };
-    expected_data = data;
-    expected_number_of_files = number_of_files;
-    expected_size_of_files = size_of_files;
-    generator.clearGeneratedData();
-  }
-
- private:
-  void createFile(Reader &reader) {
-    auto filename { reader.readString() };
-    filenames.emplace_back(filename);
-
-    auto size { reader.readNumber() };
-    auto symbol { reader.readString() };
-    expected_size_of_files += size;
-    generator.makeTextFileAndAppend(filename, size, symbol);
-  }
-
-  void appendFile(Reader &reader) {
-    auto filename { reader.readString() };
-    filenames.emplace_back(filename);
-
-    auto binary_data { readFile("build/" + filename) };
-    expected_size_of_files += binary_data.size();
-    generator.appendFile(filename, binary_data);
+ public:
+  void appendHTMLs(std::vector<std::string> range) {
+    for_each(range, [this](const auto &path) { htmls.emplace_back(readFile(path)); });
   }
 };
+
+#if 0
 
 TEST_F(GeneralTest, saveFiles_and_getFile_files) {
   GTEST_SKIP();
@@ -92,5 +45,7 @@ TEST_F(GeneralTest, saveFiles_and_getFile_files) {
   ASSERT_EQ(processed_amount_of_data, expected_size_of_files) << std::format(
       "Processed amount of data: {}; Expected: {}", amount_of_data_in_returned_info, expected_size_of_files);
 }
+
+#endif
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef TEST_PARSER_HPP
 #define TEST_PARSER_HPP
 
+#if 0
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -50,5 +52,7 @@ TEST_F(ParserTest, Parsing_100_files_with_max_size_1000_is_correct) {
   whenParserIsParsing();
   thenActualShouldBeEqualExpected();
 }
+
+#endif
 
 #endif

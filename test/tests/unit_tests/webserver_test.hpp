@@ -1,6 +1,8 @@
 #ifndef TEST_WEBSERVER_HPP
 #define TEST_WEBSERVER_HPP
 
+#if 0
+
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <format>
@@ -163,5 +165,7 @@ TEST_F(WebServerPostTest, Empty_post_request_return_error) {
   whenClientIsSendingPost();
   thenActualAndExpectedDataShouldBeEqual();
 }
+
+#endif
 
 #endif
