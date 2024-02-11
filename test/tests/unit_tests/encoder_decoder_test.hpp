@@ -1,48 +1,45 @@
 #ifndef TEST_ENCODER_DECODER_HPP
 #define TEST_ENCODER_DECODER_HPP
 
-#if 0
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include <ranges>
-
-#include "modules/core/decoder_base64.hpp"
-#include "modules/core/encoder_base64.hpp"
+#include "test_base.hpp"
 #include "utility/generators.hpp"
-
-using namespace testing;
-using namespace home;
-using namespace crypto;
-using std::ranges::for_each;
 
 class EncoderDecoderTest : public Test {
  private:
   Base64Encoder encoder;
   Base64Decoder decoder;
   std::unordered_map<std::string, std::string> expected;
+  std::unordered_map<std::string, std::string> encoded;
   std::unordered_map<std::string, std::string> actual;
 
  public:
-  void givenNumberOfFilesAndMaxSizeOfThem(size_t number_of_files, size_t max_size) { expected = generateFiles(); }
+  void appendExpected(std::unordered_map<std::string, std::string> range) { expected.insert(begin(range), end(range)); }
 
-  void whenEncoderIsEncodingAndThenDecoderIsDecoding() {
-    for (auto &&[filename, filedata] : expected) {
-      const auto encoded { encoder.encode(filedata) };
-      actual.emplace(filename, decoder.decode(encoded));
-    }
+  void encode() {
+    for_each(expected, [this](const auto &pair) {
+      const auto encoded_filename { encoder.encode(pair.first) };
+      const auto encoded_filedata { encoder.encode(pair.second) };
+      encoded.emplace(encoded_filename, encoded_filedata);
+    });
+  }
+  void decode() {
+    for_each(encoded, [this](const auto &pair) {
+      const auto decoded_filename { decoder.decode(pair.first) };
+      const auto decoded_filedata { decoder.decode(pair.second) };
+      actual.emplace(decoded_filename, decoded_filedata);
+    });
   }
 
-  void thenActualAndExpectedDataShouldBeEqual() { ASSERT_EQ(actual, expected); }
+  void assertActualIsEqualExpected() { ASSERT_EQ(actual, expected); }
 };
 
-TEST_F(EncoderDecoderTest, Encoding_and_decoding_are_correct) {
-  givenNumberOfFilesAndMaxSizeOfThem(100, 1'000);
-  whenEncoderIsEncodingAndThenDecoderIsDecoding();
-  thenActualAndExpectedDataShouldBeEqual();
-}
+TEST_F(EncoderDecoderTest, Encoding_and_decoding_files) {
+  appendExpected(generateFiles());
 
-#endif
+  encode();
+  decode();
+
+  assertActualIsEqualExpected();
+}
 
 #endif

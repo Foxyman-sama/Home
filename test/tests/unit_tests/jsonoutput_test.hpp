@@ -21,10 +21,7 @@ class JSONContainerTest : public Test {
     for_each(expected, [this](const auto &pair) { container.write(pair.first, pair.second); });
   }
   void read() {
-    for_each(filenames, [this](const auto &filename) {
-      const auto data { container.read(filename) };
-      actual.emplace_back(filename, data);
-    });
+    for_each(filenames, [this](const auto &filename) { actual.emplace_back(filename, container.read(filename)); });
   }
 
   void assertActualIsEqualExpected() { ASSERT_EQ(actual, expected); }
