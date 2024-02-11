@@ -17,21 +17,24 @@ class GeneralTest : public Test {
 
  public:
   void appendHTMLs(std::vector<std::string> range) {
-    for_each(range, [this](const auto &path) { htmls.emplace_back(readFile(path)); });
+    for_each(range, [this](const auto &filename) {
+      const auto filepath { directory + filename };
+      htmls.emplace_back(readFile(filepath));
+    });
   }
   void appendFilenames(std::vector<std::string> range) { filenames.insert(begin(filenames), begin(range), end(range)); }
 
   void handle() {
     for_each(htmls, [this](const auto &html) { controller.save(html); });
     for_each(filenames, [this](const auto &filename) { actual.emplace_back(interactor.get(filename)); });
-    for_each(filenames, [this](const auto &filename) { expected.emplace_back(readFile("build/" + filename)); });
+    for_each(filenames, [this](const auto &filename) { expected.emplace_back(readFile(directory + filename)); });
   }
 
   void assertActualIsEqualExpected() { ASSERT_EQ(actual, expected); }
 };
 
 TEST_F(GeneralTest, System_when_html_with_chrome_boundary_comes) {
-  appendHTMLs({ "build/test_chrome.html" });
+  appendHTMLs({ "test_chrome.html" });
   appendFilenames({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
 
   handle();
@@ -39,7 +42,7 @@ TEST_F(GeneralTest, System_when_html_with_chrome_boundary_comes) {
   assertActualIsEqualExpected();
 }
 TEST_F(GeneralTest, System_when_html_with_firefox_boundary_comes) {
-  appendHTMLs({ "build/test_firefox.html" });
+  appendHTMLs({ "test_firefox.html" });
   appendFilenames({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
 
   handle();

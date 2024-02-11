@@ -4,7 +4,31 @@
 
 #include "test/tests.hpp"
 
-int main(int argc, char **argv) { return startTests(argc, argv); }
+bool isExisted(std::string path) {
+  std::ifstream fin { path };
+  return fin.is_open();
+}
+void makeHTML(std::string output, std::string boundary, std::vector<std::string> filenames) {
+  HTMLMaker maker { boundary };
+  for_each(filenames, [&](const auto &filename) { maker.appendFile(filename, readFile(directory + filename)); });
+
+  auto [html, _, __] { maker.getFileGeneratedParamsAndIfNotEmptyAddLastBounary() };
+  std::ofstream fout { output, std::ios_base::binary };
+  fout.write(html.data(), html.size());
+}
+
+int main(int argc, char **argv) {
+  if (isExisted("build/test_chrome.html") == false) {
+    makeHTML("build/test_chrome.html", Delims::chrome_boundary.data(),
+             { "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
+  }
+  if (isExisted("build/test_firefox.html") == false) {
+    makeHTML("build/test_firefox.html", Delims::firefox_boundary.data(),
+             { "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
+  }
+
+  return startTests(argc, argv);
+}
 
 #else
 

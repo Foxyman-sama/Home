@@ -25,4 +25,6 @@ using std::begin, std::end;
 using std::ranges::for_each;
 using std::ranges::views::zip;
 
+const inline std::string directory { "build/" };
+
 #endif
