@@ -23,6 +23,7 @@ class DataCounter {
 
   std::pair<size_t, size_t> get() const noexcept { return { number_of_files, amount_of_str }; }
 };
+
 class InteractorImpl : public Interactor {
  private:
   crypto::Base64Encoder encoder;

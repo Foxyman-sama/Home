@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-static std::string readFile(std::string path) {
+std::string readFile(std::string path) {
   std::ifstream file_stream { path, std::ios_base::binary };
   file_stream.seekg(0, file_stream.end);
 
