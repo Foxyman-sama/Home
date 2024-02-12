@@ -21,7 +21,7 @@ class ControllerTest : public Test {
   ControllerTest() : controller { interactor, parser } {}
 };
 
-TEST_F(ControllerTest, Call_saveFiles_call_parse_and_encode_and_saveFiles) {
+TEST_F(ControllerTest, Save_call_parse_and_encode_and_save) {
   EXPECT_CALL(parser, parse(_));
   EXPECT_CALL(interactor, save(_));
   controller.save({});

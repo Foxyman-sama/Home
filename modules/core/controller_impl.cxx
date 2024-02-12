@@ -6,12 +6,12 @@ namespace home::controller {
 
 std::unordered_map<std::string, std::string> ControllerImpl::save(const std::string &str) {
   try {
-    return trysaveFiles(str);
+    return trySave(str);
   } catch (...) {
     throw;
   }
 }
-std::unordered_map<std::string, std::string> ControllerImpl::trysaveFiles(const std::string &str) {
+std::unordered_map<std::string, std::string> ControllerImpl::trySave(const std::string &str) {
   auto files { parser.parse(str) };
   auto [number_of_files, amount_of_data] { interactor.save(files) };
   return formatReturn(number_of_files, amount_of_data);
