@@ -2,53 +2,46 @@
 
 namespace home::webserver {
 
-WebServer::WebServer(net::io_context& io, unsigned short port, controller::Controller& controller)
-    : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } }, controller { controller } {}
+WebServer::WebServer(net::io_context &io, unsigned short port, controller::Controller &controller,
+                     HTMLContainer &container)
+    : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } },
+      controller { controller },
+      container { container } {}
 
-net::tcp::socket WebServer::accept() { return acceptor.accept(); }
+net::Socket WebServer::accept() { return acceptor.accept(); }
 
-void WebServer::handle(net::tcp::socket& socket) {
+void WebServer::handle(net::Socket &socket) {
   receiver.receive(socket);
   if (receiver.getMethod() == net::http::verb::get) {
-    sendByTarget(socket);
+    handleGet(socket);
   } else if (receiver.getMethod() == net::http::verb::post) {
-    handleAndSendInfo(socket);
+    handlePost(socket);
   } else {
     sender.send(socket, ErrorMessages::bad_request, net::http::status::bad_request);
   }
 }
-
-void WebServer::sendByTarget(net::tcp::socket& socket) {
-  if (receiver.getTarget() == Targets::default_target) {
-    readAndSendHTML(socket, HTMLPaths::index);
+void WebServer::handleGet(net::Socket &socket) {
+  const auto target { receiver.getTarget() };
+  if (container.isContained(target)) {
+    sender.send(socket, container.get(target));
   } else {
     sender.send(socket, ErrorMessages::bad_target, net::http::status::bad_request);
   }
 }
-void WebServer::readAndSendHTML(net::tcp::socket& socket, const std::string_view& path) {
-  auto file { readFile(path) };
-  sender.send(socket, file, net::http::status::ok);
-}
-net::http::file_body::value_type WebServer::readFile(const std::string_view& path) {
-  net::http::file_body::value_type file;
-  net::error_code ec;
-  file.open(path.data(), net::file_mode::scan, ec);
-  return file;
-}
-
-void WebServer::handleAndSendInfo(net::tcp::socket& socket) {
+void WebServer::handlePost(net::Socket &socket) {
   auto body { receiver.getBody() };
-  if (isHTMLBroken(body) == true) {
+  if (isHTMLEmpty(body)) {
+    sender.send(socket, ErrorMessages::empty_post, net::http::status::bad_request);
+  } else if (isPostHTMLBroken(body)) {
     sender.send(socket, ErrorMessages::bad_request, net::http::status::bad_request);
+  } else {
+    auto info { controller.save(receiver.getBody()) };
+    sender.send(socket, makeStringWithInfo(info), net::http::status::ok);
   }
-
-  auto info { controller.save(receiver.getBody()) };
-  auto formated { makeStringWithInfo(info) };
-  sender.send(socket, formated, net::http::status::ok);
 }
-std::string WebServer::makeStringWithInfo(const HashTable<std::string, std::string>& info) {
+std::string WebServer::makeStringWithInfo(const std::unordered_map<std::string, std::string> &info) {
   std::string result;
-  for (auto&& [key, value] : info) {
+  for (auto &&[key, value] : info) {
     result += std::format("{} - {}\n", key, value);
   }
 

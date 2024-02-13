@@ -22,11 +22,11 @@ class ControllerImpl : public Controller {
  public:
   ControllerImpl(interactor::Interactor &interactor, Parser &parser) : interactor { interactor }, parser { parser } {}
 
-  HashTable<std::string, std::string> save(const std::string &str) override;
+  std::unordered_map<std::string, std::string> save(const std::string &str) override;
 
  private:
-  HashTable<std::string, std::string> trySave(const std::string &str);
-  HashTable<std::string, std::string> formatReturn(size_t number_of_files, size_t amount_of_data);
+  std::unordered_map<std::string, std::string> trySave(const std::string &str);
+  std::unordered_map<std::string, std::string> formatReturn(size_t number_of_files, size_t amount_of_data);
 };
 
 }  // namespace home::controller

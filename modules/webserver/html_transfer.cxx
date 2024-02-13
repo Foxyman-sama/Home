@@ -2,7 +2,7 @@
 
 namespace home::webserver {
 
-void Receiver::receive(net::tcp::socket& socket) {
+void Receiver::receive(net::Socket &socket) {
   parser.emplace();
   parser->body_limit(100'000'000);
   net::http::read(socket, buffer, *parser);
@@ -11,10 +11,10 @@ void Receiver::receive(net::tcp::socket& socket) {
 
 net::http::verb Receiver::getMethod() const noexcept { return request.method(); }
 std::string_view Receiver::getTarget() const noexcept { return request.target(); }
-net::http::request<net::http::string_body>& Receiver::getRequest() noexcept { return request; }
-std::string& Receiver::getBody() noexcept { return request.body(); }
+net::http::request<net::http::string_body> &Receiver::getRequest() noexcept { return request; }
+std::string &Receiver::getBody() noexcept { return request.body(); }
 
-void Sender::send(net::tcp::socket& socket, net::http::file_body::value_type& file, net::http::status status) {
+void Sender::send(net::Socket &socket, net::http::file_body::value_type &&file, net::http::status status) {
   auto response { makeResponseHeaderWithFileBody(status) };
   response.content_length(file.size());
   response.body() = std::move(file);
@@ -27,7 +27,7 @@ net::http::response<net::http::file_body> Sender::makeResponseHeaderWithFileBody
   return response;
 }
 
-void Sender::send(net::tcp::socket& socket, const std::string_view& str, net::http::status status) {
+void Sender::send(net::Socket &socket, const std::string_view &str, net::http::status status) {
   auto response { makeResponseHeaderWithStringBody(status) };
   response.content_length(str.size());
   response.body() = str;

@@ -1,54 +1,49 @@
 #ifndef TEST_PARSER_HPP
 #define TEST_PARSER_HPP
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include <memory>
-
-#include "utility/generators.hpp"
-
-using namespace testing;
-using namespace home;
-using namespace controller;
+#include "test_base.hpp"
+#include "utility/reader.hpp"
 
 class ParserTest : public Test {
  private:
   HTMLParser parser;
-  std::string data;
-  HashTable<std::string, std::string> expected_data;
-  HashTable<std::string, std::string> actual_data;
-  bool is_threw_exception;
+  std::vector<std::string> htmls;
+  std::unordered_map<std::string, std::string> expected;
+  std::unordered_map<std::string, std::string> actual;
 
  public:
-  void givenNumberOfFilesAndMaxSize(size_t number_of_files, size_t max_size) {
-    auto [tuple, files] { generateHTMLWithFiles<std::string, std::string>(number_of_files, max_size) };
-    data = std::get<0>(tuple);
-    expected_data = files;
-    is_threw_exception = false;
+  void appendHTMLs(std::vector<std::string> range) {
+    for_each(range, [this](const auto &filename) { htmls.emplace_back(readFile(directory + filename)); });
+  }
+  void appendExpected(std::vector<std::string> range) {
+    for_each(range, [this](const auto &filename) { expected.emplace(filename, readFile(directory + filename)); });
   }
 
-  void whenParserIsParsing() {
-    try {
-      actual_data = parser.parse(data);
-    } catch (...) {
-      is_threw_exception = true;
-    }
+  void parse() {
+    for_each(htmls, [this](const auto &html) {
+      const auto parsed { parser.parse(html) };
+      actual.insert(begin(parsed), end(parsed));
+    });
   }
 
-  void thenActualShouldBeEqualExpected() { ASSERT_EQ(actual_data, expected_data); }
-  void thenParserShouldThrowException() { ASSERT_EQ(is_threw_exception, true); }
+  void assertActualIsEqualExpected() { ASSERT_EQ(actual, expected); }
 };
 
-TEST_F(ParserTest, Parsing_100_files_with_max_size_1_is_correct) {
-  givenNumberOfFilesAndMaxSize(100, 1);
-  whenParserIsParsing();
-  thenActualShouldBeEqualExpected();
+TEST_F(ParserTest, Parsing_html_with_chrome_boundary) {
+  appendHTMLs({ "test_chrome.html" });
+  appendExpected({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
+
+  parse();
+
+  assertActualIsEqualExpected();
 }
-TEST_F(ParserTest, Parsing_100_files_with_max_size_1000_is_correct) {
-  givenNumberOfFilesAndMaxSize(100, 1'000);
-  whenParserIsParsing();
-  thenActualShouldBeEqualExpected();
+TEST_F(ParserTest, Parsing_html_with_firefox_boundary) {
+  appendHTMLs({ "test_firefox.html" });
+  appendExpected({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
+
+  parse();
+
+  assertActualIsEqualExpected();
 }
 
 #endif

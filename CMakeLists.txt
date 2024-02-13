@@ -16,7 +16,7 @@ add_executable(${PROJECT_NAME}
 	${src})
 target_include_directories(${PROJECT_NAME} PRIVATE
 	modules/core
-	modules/webserverP
+	modules/webserver
 	${CMAKE_BINARY_DIR}
 	${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})  

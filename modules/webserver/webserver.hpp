@@ -5,31 +5,31 @@
 
 #include "../core/controller.hpp"
 #include "html_definitions.hpp"
+#include "html_files.hpp"
 #include "html_transfer.hpp"
 
 namespace home::webserver {
 
 class WebServer {
  private:
-  net::tcp::acceptor acceptor;
-  controller::Controller& controller;
+  net::Acceptor acceptor;
+  controller::Controller &controller;
   Receiver receiver;
   Sender sender;
+  HTMLContainer &container;
 
  public:
-  explicit WebServer(net::io_context& io, unsigned short port, controller::Controller& controller);
+  explicit WebServer(net::io_context &io, unsigned short port, controller::Controller &controller,
+                     HTMLContainer &container);
 
-  net::tcp::socket accept();
+  net::Socket accept();
 
-  void handle(net::tcp::socket& socket);
+  void handle(net::Socket &socket);
 
  private:
-  void sendByTarget(net::tcp::socket& socket);
-  void readAndSendHTML(net::tcp::socket& socket, const std::string_view& path);
-  net::http::file_body::value_type readFile(const std::string_view& path);
-
-  void handleAndSendInfo(net::tcp::socket& socket);
-  std::string makeStringWithInfo(const HashTable<std::string, std::string>& info);
+  void handleGet(net::Socket &socket);
+  void handlePost(net::Socket &socket);
+  std::string makeStringWithInfo(const std::unordered_map<std::string, std::string> &info);
 };
 
 }  // namespace home::webserver

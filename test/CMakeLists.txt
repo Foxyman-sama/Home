@@ -12,7 +12,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	tests
 	${GTEST_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
-	${CMAKE_SOURCE_DIR})
+	${CMAKE_SOURCE_DIR}/modules/core
+	${CMAKE_SOURCE_DIR}/modules/webserver)
 target_link_libraries(${PROJECT_NAME} PUBLIC
 	GTest::gmock_main
 	${GTEST_LIBRARIES}
