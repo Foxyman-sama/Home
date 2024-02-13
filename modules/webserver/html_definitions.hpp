@@ -19,17 +19,19 @@ struct ErrorMessages {
   static constexpr std::string_view empty_post { "The post request is empty" };
 };
 
-inline bool isHTMLBroken(const std::string &html) noexcept {
-  if (html.empty() == true) {
+inline bool isPostHTMLBroken(const std::string &html) noexcept {
+  if ((html.find(Delims::chrome_boundary) == std::string::npos) &&
+      (html.find(Delims::firefox_boundary) == std::string::npos)) {
     return true;
-  } else if ((html.find(Delims::chrome_boundary) == std::string::npos) &&
-             (html.find(Delims::firefox_boundary) == std::string::npos)) {
+  } else if ((html.find(Delims::name_matcher_beg) == std::string::npos) &&
+             (html.find(Delims::name_matcher_end) == std::string::npos)) {
     return true;
   }
 
   return false;
 }
-// TODO - REFACTORING THIS MESS!
+inline bool isHTMLEmpty(const std::string &body) noexcept { return body.empty() == true; }
+
 }  // namespace  home::webserver
 
 #endif

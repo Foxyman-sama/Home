@@ -30,7 +30,9 @@ void WebServer::handleGet(net::Socket &socket) {
 }
 void WebServer::handlePost(net::Socket &socket) {
   auto body { receiver.getBody() };
-  if (isHTMLBroken(body) == true) {
+  if (isHTMLEmpty(body)) {
+    sender.send(socket, ErrorMessages::empty_post, net::http::status::bad_request);
+  } else if (isPostHTMLBroken(body)) {
     sender.send(socket, ErrorMessages::bad_request, net::http::status::bad_request);
   } else {
     auto info { controller.save(receiver.getBody()) };

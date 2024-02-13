@@ -8,6 +8,7 @@ class MockContainer : public JSONContainer {
   MOCK_METHOD(void, write, (const std::string &, const std::string &), (override));
   MOCK_METHOD((std::string), read, (const std::string &), (override));
 };
+
 class InteractorTest : public Test {
  public:
   InteractorImpl interactor;

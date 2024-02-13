@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <future>
 #include <ranges>
 
 #include "controller_impl.hpp"

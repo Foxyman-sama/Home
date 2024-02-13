@@ -1,38 +1,15 @@
 #ifndef TEST_WEBSERVER_HPP
 #define TEST_WEBSERVER_HPP
 
-#if 0
+#include "test_base.hpp"
 
-#include <boost/asio.hpp>
-#include <boost/beast.hpp>
-#include <format>
-#include <future>
-#include <memory>
-
-#include "modules/core/controller_impl.hpp"
-#include "modules/webserver/webserver.hpp"
-#include "utility/generators.hpp"
-#include "utility/reader.hpp"
-
-using namespace testing;
-using namespace home;
-using namespace controller;
-using namespace webserver;
-
-class MockController : public Controller {
- public:
-  MOCK_METHOD((std::unordered_map<std::string, std::string>), save, (const std::string &), (override));
-};
 class TestConnection {
  private:
   net::io_context io;
   net::tcp_stream stream;
-  std::string ip;
-  std::string port;
 
  public:
-  TestConnection(const std::string &ip = "127.0.0.1", const std::string &port = "9090")
-      : stream { io }, ip { ip }, port { port } {}
+  TestConnection() : stream { io } {}
   ~TestConnection() {
     net::error_code ec;
     stream.socket().shutdown(net::tcp::socket::shutdown_both, ec);
@@ -40,20 +17,22 @@ class TestConnection {
 
   void connect() {
     net::tcp::resolver resolver { io };
-    const auto endpoint { resolver.resolve(ip, port) };
+    const auto endpoint { resolver.resolve("127.0.0.1", "9090") };
     stream.connect(endpoint);
   }
 
-  std::string get(const std::string &targetFile) {
-    auto request { makeRequestHeader(net::http::verb::get, targetFile) };
+  std::string get(const std::string &target, const std::string &body) {
+    auto request { makeRequestHeader(net::http::verb::get, target) };
+    request.content_length(body.size());
+    request.body() = body;
     net::http::write(stream, request);
 
     auto response { read() };
     return response.body();
   }
 
-  std::string post(const std::string &body) {
-    auto request { makeRequestHeader(net::http::verb::post, "/") };
+  std::string post(const std::string &target, const std::string &body) {
+    auto request { makeRequestHeader(net::http::verb::post, target) };
     request.content_length(body.size());
     request.body() = body;
     net::http::write(stream, request);
@@ -63,9 +42,9 @@ class TestConnection {
   }
 
  private:
-  net::http::request<net::http::string_body> makeRequestHeader(net::http::verb verb, const std::string &targetFile) {
-    net::http::request<net::http::string_body> request { verb, targetFile, 10 };
-    request.set(net::http::field::host, ip);
+  net::http::request<net::http::string_body> makeRequestHeader(net::http::verb verb, const std::string &target) {
+    net::http::request<net::http::string_body> request { verb, target, 10 };
+    request.set(net::http::field::host, "127.0.0.1");
     request.set(net::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     return request;
   }
@@ -77,95 +56,120 @@ class TestConnection {
     return response;
   }
 };
+
+class MockController : public Controller {
+ public:
+  MOCK_METHOD((std::unordered_map<std::string, std::string>), save, (const std::string &), (override));
+};
+
 class WebServerTest : public Test {
- protected:
+ private:
   net::io_context io;
-  MockController controller;
+  std::unique_ptr<WebServer> server;
   HTMLContainer container;
-  WebServer server;
   TestConnection connection;
-  std::string actual;
-  std::string expected;
-
-  WebServerTest() : server { io, 9090, controller, container } { container.emplace("/", "build/index.html"); }
-
-  void thenActualAndExpectedDataShouldBeEqual() { ASSERT_EQ(actual, expected); }
-};
-class WebServergetFileTest : public WebServerTest {
- private:
-  std::string targetFile;
-  Reader reader;
+  std::vector<std::tuple<std::string, std::string, net::http::verb>> requests;
+  std::vector<std::string> expected;
+  std::vector<std::string> actual;
 
  public:
-  void givenTargetFileAndExpected(const std::string &targetFile, const std::string &expected) {
-    this->targetFile = targetFile;
-    this->expected = expected;
+  MockController controller;
+
+  void SetUp() override {
+    container.emplace("/", "build/index.html");
+    server.reset(new WebServer { io, 9090, controller, container });
   }
 
-  void whenClientIsgetFileting() {
-    auto wait_connection { std::async(std::launch::async, &TestConnection::connect, &connection) };
-    auto socket { server.accept() };
-    wait_connection.wait();
-
-    auto wait_getFileting { std::async(std::launch::async, &TestConnection::get, &connection, targetFile) };
-    server.handle(socket);
-    actual = wait_getFileting.get();
+  void appendRequests(std::vector<std::tuple<std::string, std::string, net::http::verb>> range) {
+    requests.insert(end(requests), begin(range), end(range));
   }
-};
-class WebServerPostTest : public WebServerTest {
- private:
-  std::string html;
-  std::unordered_map<std::string, std::string> return_controller;
+  void appendExpected(std::vector<std::string> range) { expected.insert(end(expected), begin(range), end(range)); }
 
- public:
-  void givenNumberOfFilesAndMaxFileSize(size_t number_of_files, size_t max_file_size) {
-    auto [generated, files] { generateHTMLWithFiles<std::string, std::string>(number_of_files, max_file_size) };
-    html = std::get<0>(generated);
-    expected += std::format("amount_of_data - {}\n", std::get<2>(generated));
-    expected += std::format("number_of_files - {}\n", std::get<1>(generated));
-    return_controller.emplace("number_of_files", std::to_string(std::get<1>(generated)));
-    return_controller.emplace("amount_of_data", std::to_string(std::get<2>(generated)));
-    EXPECT_CALL(controller, save(_)).WillOnce(Return(return_controller));
+  void handle() {
+    for_each(requests, [this](const auto &request) {
+      const auto wait_connection { std::async(std::launch::async, &TestConnection::connect, &connection) };
+      auto socket { server->accept() };
+      wait_connection.wait();
+
+      const auto &[target, body, type] { request };
+      std::future<std::string> th;
+      if (type == net::http::verb::get) {
+        th = std::async(std::launch::async, &TestConnection::get, &connection, target, body);
+      } else if (type == net::http::verb::post) {
+        th = std::async(std::launch::async, &TestConnection::post, &connection, target, body);
+      }
+
+      server->handle(socket);
+      actual.emplace_back(th.get());
+    });
   }
-  void givenExpected(const std::string &expected) { this->expected = expected; }
 
-  void whenClientIsSendingPost() {
-    auto wait_connection { std::async(std::launch::async, &TestConnection::connect, &connection) };
-    auto socket { server.accept() };
-    wait_connection.wait();
-
-    auto wait_posting { std::async(std::launch::async, &TestConnection::post, &connection, html) };
-    server.handle(socket);
-    actual = wait_posting.get();
-  }
+  void assertActualIsEqualExpected() { ASSERT_EQ(actual, expected); }
 };
 
-TEST_F(WebServergetFileTest, Request_default_targetFile_return_index_html) {
-  givenTargetFileAndExpected("/", readFile("build/index.html"));
-  whenClientIsgetFileting();
-  thenActualAndExpectedDataShouldBeEqual();
-}
-TEST_F(WebServergetFileTest, Request_with_bad_targetFile_return_error) {
-  givenTargetFileAndExpected("@", ErrorMessages::bad_target.data());
-  whenClientIsgetFileting();
-  thenActualAndExpectedDataShouldBeEqual();
-}
-TEST_F(WebServerPostTest, Request_return_correct_info_about_files) {
-  givenNumberOfFilesAndMaxFileSize(100, 100);
-  whenClientIsSendingPost();
-  thenActualAndExpectedDataShouldBeEqual();
-}
-TEST_F(WebServerPostTest, Body_limit_is_higher_than_1_000_000) {
-  givenNumberOfFilesAndMaxFileSize(1, 1'000'000);
-  whenClientIsSendingPost();
-  thenActualAndExpectedDataShouldBeEqual();
-}
-TEST_F(WebServerPostTest, Empty_post_request_return_error) {
-  givenExpected(ErrorMessages::bad_request.data());
-  whenClientIsSendingPost();
-  thenActualAndExpectedDataShouldBeEqual();
-}
+TEST_F(WebServerTest, Get_request_with_default_target_return_index_html) {
+  appendRequests({ { "/", "", net::http::verb::get } });
+  appendExpected({ readFile(directory + "index.html") });
 
-#endif
+  handle();
+
+  assertActualIsEqualExpected();
+}
+TEST_F(WebServerTest, Get_request_with_bad_target_return_error) {
+  appendRequests({ { "@", "", net::http::verb::get } });
+  appendExpected({ ErrorMessages::bad_target.data() });
+
+  handle();
+
+  assertActualIsEqualExpected();
+}
+TEST_F(WebServerTest, Empty_post_request_return_error) {
+  appendRequests({ { "/", "", net::http::verb::post } });
+  appendExpected({ ErrorMessages::empty_post.data() });
+
+  handle();
+
+  assertActualIsEqualExpected();
+}
+TEST_F(WebServerTest, Post_request_without_files_return_error) {
+  appendRequests({ { "/", "f", net::http::verb::post } });
+  appendExpected({ ErrorMessages::bad_request.data() });
+
+  handle();
+
+  assertActualIsEqualExpected();
+}
+TEST_F(WebServerTest, Post_request_with_chrome_boundary_and_file_call_save) {
+  const auto post {
+    "------WebKitForm\n"
+    "filename=\"f\"\n"
+    "\r\n"
+    "\rf"
+    "------WebKitForm\n"
+  };
+  appendRequests({ { "/", post, net::http::verb::post } });
+  appendExpected({ "" });
+  EXPECT_CALL(controller, save(_));
+
+  handle();
+
+  assertActualIsEqualExpected();
+}
+TEST_F(WebServerTest, Post_request_with_firefox_boundary_and_file_call_save) {
+  const auto post {
+    "-----------------------------n"
+    "filename=\"f\"\n"
+    "\r\n"
+    "\rf"
+    "-----------------------------\n"
+  };
+  appendRequests({ { "/", post, net::http::verb::post } });
+  appendExpected({ "" });
+  EXPECT_CALL(controller, save(_));
+
+  handle();
+
+  assertActualIsEqualExpected();
+}
 
 #endif
