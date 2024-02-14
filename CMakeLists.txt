@@ -1,7 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.20)
 project(Home)
 
-option(Testing "Tests" ON)
+option(Testing "Tests" OFF)
 configure_file(config.h.in config.h)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

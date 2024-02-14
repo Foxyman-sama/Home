@@ -12,6 +12,8 @@ class Interactor {
   virtual std::pair<size_t, size_t> save(const std::unordered_map<std::string, std::string> &) = 0;
 
   virtual std::string get(const std::string &) = 0;
+
+  virtual std::vector<std::string> getSavedFilenames() = 0;
 };
 
 }  // namespace home::interactor

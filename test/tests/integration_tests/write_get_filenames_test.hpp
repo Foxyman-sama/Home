@@ -1,13 +1,12 @@
-#ifndef GENERAL_TEST
-#define GENERAL_TEST
+#ifndef WRITE_GET_FILENAMES_HPP
+#define WRITE_GET_FILENAMES_HPP
 
 #include "test_base.hpp"
 #include "utility/reader.hpp"
 
-class GeneralTest : public Test {
+class WriteGetTest : public Test {
  private:
   std::vector<std::string> htmls;
-  std::vector<std::string> filenames;
   std::vector<std::string> actual;
   std::vector<std::string> expected;
   HTMLParser parser;
@@ -22,28 +21,29 @@ class GeneralTest : public Test {
       htmls.emplace_back(readFile(filepath));
     });
   }
-  void appendFilenames(std::vector<std::string> range) { filenames.insert(begin(filenames), begin(range), end(range)); }
+  void appendExpected(std::vector<std::string> range) { expected.insert(begin(expected), begin(range), end(range)); }
 
   void handle() {
     for_each(htmls, [this](const auto &html) { controller.save(html); });
-    for_each(filenames, [this](const auto &filename) { actual.emplace_back(interactor.get(filename)); });
-    for_each(filenames, [this](const auto &filename) { expected.emplace_back(readFile(directory + filename)); });
+    actual = controller.getSavedFilenames();
+    std::ranges::sort(actual);
+    std::ranges::sort(expected);
   }
 
   void assertActualIsEqualExpected() { ASSERT_EQ(actual, expected); }
 };
 
-TEST_F(GeneralTest, System_when_html_with_chrome_boundary_comes) {
+TEST_F(WriteGetTest, System_when_html_with_chrome_boundary_comes) {
   appendHTMLs({ "test_chrome.html" });
-  appendFilenames({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
+  appendExpected({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
 
   handle();
 
   assertActualIsEqualExpected();
 }
-TEST_F(GeneralTest, System_when_html_with_firefox_boundary_comes) {
+TEST_F(WriteGetTest, System_when_html_with_firefox_boundary_comes) {
   appendHTMLs({ "test_firefox.html" });
-  appendFilenames({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
+  appendExpected({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
 
   handle();
 

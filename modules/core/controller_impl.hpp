@@ -24,6 +24,8 @@ class ControllerImpl : public Controller {
 
   std::unordered_map<std::string, std::string> save(const std::string &str) override;
 
+  std::vector<std::string> getSavedFilenames() override { return interactor.getSavedFilenames(); }
+
  private:
   std::unordered_map<std::string, std::string> trySave(const std::string &str);
   std::unordered_map<std::string, std::string> formatReturn(size_t number_of_files, size_t amount_of_data);

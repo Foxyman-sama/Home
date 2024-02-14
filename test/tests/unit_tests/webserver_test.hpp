@@ -60,6 +60,7 @@ class TestConnection {
 class MockController : public Controller {
  public:
   MOCK_METHOD((std::unordered_map<std::string, std::string>), save, (const std::string &), (override));
+  MOCK_METHOD((std::vector<std::string>), getSavedFilenames, (), (override));
 };
 
 class WebServerTest : public Test {
