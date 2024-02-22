@@ -2,6 +2,27 @@
 
 namespace home::webserver {
 
+class TextFormater {
+ public:
+  static std::string makeStringWithInfo(const std::unordered_map<std::string, std::string> &info) {
+    std::string result;
+    for (auto &&[key, value] : info) {
+      result += std::format("{} - {}\n", key, value);
+    }
+
+    return result;
+  }
+
+  static std::string makeParagraphs(const std::vector<std::string> &filenames) {
+    std::string result;
+    for (auto &&el : filenames) {
+      result += "<p>" + el + "</p>";
+    }
+
+    return result;
+  }
+};
+
 WebServer::WebServer(net::io_context &io, unsigned short port, controller::Controller &controller,
                      HTMLContainer &container)
     : acceptor { io, net::tcp::endpoint { net::tcp::v4(), port } },
@@ -23,13 +44,8 @@ void WebServer::handle(net::Socket &socket) {
 void WebServer::handleGet(net::Socket &socket) {
   const auto target { receiver.getTarget() };
   if (target == "/list") {
-    const auto list { controller.getSavedFilenames() };
-    std::string result;
-    for (const auto &el : list) {
-      result += "<p>" + el + "</p>";
-    }
-
-    sender.send(socket, result);
+    const auto list { TextFormater::makeParagraphs(controller.getSavedFilenames()) };
+    sender.send(socket, list);
   } else if (container.isContained(target)) {
     sender.send(socket, container.get(target));
   } else {
@@ -44,16 +60,8 @@ void WebServer::handlePost(net::Socket &socket) {
     sender.send(socket, ErrorMessages::bad_request, net::http::status::bad_request);
   } else {
     auto info { controller.save(receiver.getBody()) };
-    sender.send(socket, makeStringWithInfo(info), net::http::status::ok);
+    sender.send(socket, TextFormater::makeStringWithInfo(info), net::http::status::ok);
   }
-}
-std::string WebServer::makeStringWithInfo(const std::unordered_map<std::string, std::string> &info) {
-  std::string result;
-  for (auto &&[key, value] : info) {
-    result += std::format("{} - {}\n", key, value);
-  }
-
-  return result;
 }
 
 }  // namespace home::webserver

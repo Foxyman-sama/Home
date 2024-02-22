@@ -32,7 +32,7 @@ inline bool isPostHTMLBroken(const std::string &html) noexcept {
   return false;
 }
 inline bool isHTMLEmpty(const std::string &body) noexcept { return body.empty() == true; }
-
+// TODO - clear this mess somehow
 }  // namespace  home::webserver
 
 #endif

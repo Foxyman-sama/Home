@@ -175,7 +175,7 @@ TEST_F(WebServerTest, Post_request_with_firefox_boundary_and_file_call_save) {
 
 TEST_F(WebServerTest, Get_request_with_list_target_return_list) {
   appendRequests({ { "/list", "", net::http::verb::get } });
-  appendExpected({ "1.test\n2.test\n" });
+  appendExpected({ "<p>1.test</p><p>2.test</p>" });
   EXPECT_CALL(controller, getSavedFilenames()).WillOnce(Return(std::vector<std::string> { "1.test", "2.test" }));
 
   handle();

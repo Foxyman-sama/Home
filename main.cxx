@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
 int main() {
   net::io_context io;
-  home::container::JSONContainer container { "data.json" };
+  home::container::JSONContainer container { "build/data.json" };
   home::interactor::InteractorImpl interactor { container };
   home::webserver::HTMLParser parser;
   home::controller::ControllerImpl controller { interactor, parser };
