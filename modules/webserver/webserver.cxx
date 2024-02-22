@@ -22,7 +22,15 @@ void WebServer::handle(net::Socket &socket) {
 }
 void WebServer::handleGet(net::Socket &socket) {
   const auto target { receiver.getTarget() };
-  if (container.isContained(target)) {
+  if (target == "/list") {
+    const auto list { controller.getSavedFilenames() };
+    std::string result;
+    for (const auto &el : list) {
+      result += "<p>" + el + "</p>";
+    }
+
+    sender.send(socket, result);
+  } else if (container.isContained(target)) {
     sender.send(socket, container.get(target));
   } else {
     sender.send(socket, ErrorMessages::bad_target, net::http::status::bad_request);

@@ -173,4 +173,14 @@ TEST_F(WebServerTest, Post_request_with_firefox_boundary_and_file_call_save) {
   assertActualIsEqualExpected();
 }
 
+TEST_F(WebServerTest, Get_request_with_list_target_return_list) {
+  appendRequests({ { "/list", "", net::http::verb::get } });
+  appendExpected({ "1.test\n2.test\n" });
+  EXPECT_CALL(controller, getSavedFilenames()).WillOnce(Return(std::vector<std::string> { "1.test", "2.test" }));
+
+  handle();
+
+  assertActualIsEqualExpected();
+}
+
 #endif
