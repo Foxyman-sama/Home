@@ -31,5 +31,9 @@ TEST_F(ControllerTest, GetSavedFilenames_call_getSavedFilenames_from_interactor)
   EXPECT_CALL(interactor, getSavedFilenames());
   controller.getSavedFilenames();
 }
+TEST_F(ControllerTest, Get_call_get_from_interactor) {
+  EXPECT_CALL(interactor, get(_));
+  controller.get("");
+}
 
 #endif

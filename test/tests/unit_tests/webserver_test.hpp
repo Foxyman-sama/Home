@@ -61,6 +61,7 @@ class MockController : public Controller {
  public:
   MOCK_METHOD((std::unordered_map<std::string, std::string>), save, (const std::string &), (override));
   MOCK_METHOD((std::vector<std::string>), getSavedFilenames, (), (override));
+  MOCK_METHOD((std::string), get, (const std::string &), (override));
 };
 
 class WebServerTest : public Test {
@@ -175,8 +176,19 @@ TEST_F(WebServerTest, Post_request_with_firefox_boundary_and_file_call_save) {
 
 TEST_F(WebServerTest, Get_request_with_list_target_return_list) {
   appendRequests({ { "/list", "", net::http::verb::get } });
-  appendExpected({ "<p>1.test</p><p>2.test</p>" });
+  appendExpected(
+      { "<a href=\"127.0.0.1:9090/1.test\">1.test</a><br><a href=\"127.0.0.1:9090/2.test\">2.test</a><br>" });
   EXPECT_CALL(controller, getSavedFilenames()).WillOnce(Return(std::vector<std::string> { "1.test", "2.test" }));
+
+  handle();
+
+  assertActualIsEqualExpected();
+}
+
+TEST_F(WebServerTest, Get_file) {
+  appendRequests({ { "/test1.hpp", "", net::http::verb::get } });
+  appendExpected({ "fffffffffffff" });
+  EXPECT_CALL(controller, get("test1.hpp")).WillOnce(Return(std::string { "fffffffffffff" }));
 
   handle();
 

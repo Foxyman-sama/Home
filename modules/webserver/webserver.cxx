@@ -1,5 +1,7 @@
 #include "webserver.hpp"
 
+#include <format>
+
 namespace home::webserver {
 
 class TextFormater {
@@ -16,7 +18,7 @@ class TextFormater {
   static std::string makeParagraphs(const std::vector<std::string> &filenames) {
     std::string result;
     for (auto &&el : filenames) {
-      result += "<p>" + el + "</p>";
+      result += std::format("<a href=\"127.0.0.1:9090/{}\">{}</a><br>", el, el);
     }
 
     return result;
@@ -48,6 +50,8 @@ void WebServer::handleGet(net::Socket &socket) {
     sender.send(socket, list);
   } else if (container.isContained(target)) {
     sender.send(socket, container.get(target));
+  } else if (const auto file { controller.get(target.substr(1, target.size() - 1).data()) }; file != "") {
+    sender.send(socket, file);
   } else {
     sender.send(socket, ErrorMessages::bad_target, net::http::status::bad_request);
   }
