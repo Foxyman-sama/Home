@@ -10,6 +10,7 @@ class ParserTest : public Test {
   std::vector<std::string> htmls;
   std::unordered_map<std::string, std::string> expected;
   std::unordered_map<std::string, std::string> actual;
+  bool is_exception_thrown { false };
 
  public:
   void appendHTMLs(std::vector<std::string> range) {
@@ -21,12 +22,17 @@ class ParserTest : public Test {
 
   void parse() {
     for_each(htmls, [this](const auto &html) {
-      const auto parsed { parser.parse(html) };
-      actual.insert(begin(parsed), end(parsed));
+      try {
+        const auto parsed { parser.parse(html) };
+        actual.insert(begin(parsed), end(parsed));
+      } catch (...) {
+        is_exception_thrown = true;
+      }
     });
   }
 
   void assertActualIsEqualExpected() { ASSERT_EQ(actual, expected); }
+  void assertExceptionWasThrown() { ASSERT_EQ(is_exception_thrown, true); }
 };
 
 TEST_F(ParserTest, Parsing_html_with_chrome_boundary) {
@@ -37,6 +43,7 @@ TEST_F(ParserTest, Parsing_html_with_chrome_boundary) {
 
   assertActualIsEqualExpected();
 }
+
 TEST_F(ParserTest, Parsing_html_with_firefox_boundary) {
   appendHTMLs({ "test_firefox.html" });
   appendExpected({ "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
@@ -44,6 +51,15 @@ TEST_F(ParserTest, Parsing_html_with_firefox_boundary) {
   parse();
 
   assertActualIsEqualExpected();
+}
+
+TEST_F(ParserTest, Parsing_html_with_unknown_boundary) {
+  appendHTMLs({ "test_unknown.html" });
+  appendExpected({ "1.pdf" });
+
+  parse();
+
+  assertExceptionWasThrown();
 }
 
 #endif

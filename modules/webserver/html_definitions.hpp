@@ -6,12 +6,15 @@
 
 namespace home::webserver {
 
+struct Boundary {
+  static constexpr std::string_view chrome { "------WebKitForm" };
+  static constexpr std::string_view firefox { "-----------------------------" };
+};
+
 struct Delims {
   static constexpr std::string_view name_matcher_beg { "filename=\"" };
   static constexpr std::string_view name_matcher_end { "\"" };
   static constexpr std::string_view file_matcher_beg { "\r\n\r\n" };
-  static constexpr std::string_view chrome_boundary { "------WebKitForm" };
-  static constexpr std::string_view firefox_boundary { "-----------------------------" };
 };
 
 struct ErrorMessages {
@@ -21,8 +24,7 @@ struct ErrorMessages {
 };
 
 inline bool isPostHTMLBroken(const std::string &html) noexcept {
-  if ((html.find(Delims::chrome_boundary) == std::string::npos) &&
-      (html.find(Delims::firefox_boundary) == std::string::npos)) {
+  if ((html.find(Boundary::chrome) == std::string::npos) && (html.find(Boundary::firefox) == std::string::npos)) {
     return true;
   } else if ((html.find(Delims::name_matcher_beg) == std::string::npos) &&
              (html.find(Delims::name_matcher_end) == std::string::npos)) {
@@ -31,6 +33,7 @@ inline bool isPostHTMLBroken(const std::string &html) noexcept {
 
   return false;
 }
+
 inline bool isHTMLEmpty(const std::string &body) noexcept { return body.empty() == true; }
 // TODO - clear this mess somehow
 }  // namespace  home::webserver

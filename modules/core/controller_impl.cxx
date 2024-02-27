@@ -8,7 +8,7 @@ std::unordered_map<std::string, std::string> ControllerImpl::save(const std::str
   try {
     return trySave(str);
   } catch (...) {
-    throw;
+    throw std::runtime_error { "Controller error." };
   }
 }
 std::unordered_map<std::string, std::string> ControllerImpl::trySave(const std::string &str) {

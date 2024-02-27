@@ -8,7 +8,7 @@ std::pair<size_t, size_t> InteractorImpl::save(const std::unordered_map<std::str
   try {
     return trySave(files);
   } catch (...) {
-    throw;
+    throw std::runtime_error { "Interactor::save error." };
   }
 }
 std::pair<size_t, size_t> InteractorImpl::trySave(const std::unordered_map<std::string, std::string> &files) {
@@ -28,7 +28,7 @@ std::string InteractorImpl::get(const std::string &filename) {
   try {
     return tryGet(filename);
   } catch (...) {
-    throw;
+    throw std::runtime_error { "Interactor::get error." };
   }
 }
 std::string InteractorImpl::tryGet(const std::string &filename) {

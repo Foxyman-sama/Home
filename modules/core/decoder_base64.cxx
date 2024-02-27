@@ -6,7 +6,7 @@ std::string Base64Decoder::decode(const std::string &str) {
   try {
     return tryDecode(str);
   } catch (...) {
-    throw;
+    throw std::runtime_error { "Decoding error." };
   }
 }
 std::string Base64Decoder::tryDecode(const std::string &str) {

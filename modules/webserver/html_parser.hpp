@@ -40,6 +40,7 @@ class HTMLParser : public controller::Parser {
  private:
   std::unordered_map<std::string, std::string> tryParse(const std::string &str);
   void selectBoundary(const std::string &str);
+  const bool isBoundaryFound(const std::string &str, const std::string_view &boundary) const noexcept;
   std::unordered_map<std::string, std::string> parseFiles(const std::string &str);
   std::pair<std::string, std::string> parseFile(Extractor &extractor);
 };

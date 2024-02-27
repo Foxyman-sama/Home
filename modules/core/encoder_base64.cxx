@@ -6,7 +6,7 @@ std::string Base64Encoder::encode(const std::string &str) {
   try {
     return tryEncode(str);
   } catch (...) {
-    throw;
+    throw std::runtime_error { "Encoding error." };
   }
 }
 std::string Base64Encoder::tryEncode(const std::string &str) {
