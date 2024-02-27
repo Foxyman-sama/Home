@@ -15,10 +15,10 @@ class TextFormater {
     return result;
   }
 
-  static std::string makeParagraphs(const std::vector<std::string> &filenames) {
+  static std::string makeDownloadLinks(const std::vector<std::string> &filenames) {
     std::string result;
     for (auto &&el : filenames) {
-      result += std::format("<a href=\"127.0.0.1:9090/{}\">{}</a><br>", el, el);
+      result += std::format("<a href=\"{}\" download=\"{}\">{}</a><br>", el, el, el);
     }
 
     return result;
@@ -46,7 +46,7 @@ void WebServer::handle(net::Socket &socket) {
 void WebServer::handleGet(net::Socket &socket) {
   const auto target { receiver.getTarget() };
   if (target == "/list") {
-    const auto list { TextFormater::makeParagraphs(controller.getSavedFilenames()) };
+    const auto list { TextFormater::makeDownloadLinks(controller.getSavedFilenames()) };
     sender.send(socket, list);
   } else if (container.isContained(target)) {
     sender.send(socket, container.get(target));

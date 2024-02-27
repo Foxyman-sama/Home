@@ -19,6 +19,7 @@ class Receiver {
   net::http::request<net::http::string_body> &getRequest() noexcept;
   std::string &getBody() noexcept;
 };
+
 class Sender {
  public:
   void send(net::Socket &socket, net::http::file_body::value_type &&file,
