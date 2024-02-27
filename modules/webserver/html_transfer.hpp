@@ -16,6 +16,7 @@ class Receiver {
 
   net::http::verb getMethod() const noexcept;
   std::string_view getTarget() const noexcept;
+  std::string getTargetAfterSlash() const noexcept;
   net::http::request<net::http::string_body> &getRequest() noexcept;
   std::string &getBody() noexcept;
 };
@@ -28,9 +29,8 @@ class Sender {
   void send(net::Socket &socket, const std::string_view &str, net::http::status status = net::http::status::ok);
 
  private:
-  net::http::response<net::http::file_body> makeResponseHeaderWithFileBody(net::http::status status);
-
-  net::http::response<net::http::string_body> makeResponseHeaderWithStringBody(net::http::status status);
+  template <typename ResponseType>
+  net::http::response<ResponseType> makeResponseHeader(net::http::status status);
 };
 
 }  // namespace home::webserver

@@ -50,7 +50,7 @@ void WebServer::handleGet(net::Socket &socket) {
     sender.send(socket, list);
   } else if (container.isContained(target)) {
     sender.send(socket, container.get(target));
-  } else if (const auto file { controller.get(target.substr(1, target.size() - 1).data()) }; file != "") {
+  } else if (const auto file { controller.get(receiver.getTargetAfterSlash()) }; file != "") {
     sender.send(socket, file);
   } else {
     sender.send(socket, ErrorMessages::bad_target, net::http::status::bad_request);
