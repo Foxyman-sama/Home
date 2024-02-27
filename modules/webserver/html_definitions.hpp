@@ -13,8 +13,9 @@ struct Delims {
   static constexpr std::string_view chrome_boundary { "------WebKitForm" };
   static constexpr std::string_view firefox_boundary { "-----------------------------" };
 };
+
 struct ErrorMessages {
-  static constexpr std::string_view bad_target { "Unknown targetFile" };
+  static constexpr std::string_view bad_target { "Unknown target" };
   static constexpr std::string_view bad_request { "Unknown method" };
   static constexpr std::string_view empty_post { "The post request is empty" };
 };
@@ -31,7 +32,7 @@ inline bool isPostHTMLBroken(const std::string &html) noexcept {
   return false;
 }
 inline bool isHTMLEmpty(const std::string &body) noexcept { return body.empty() == true; }
-
+// TODO - clear this mess somehow
 }  // namespace  home::webserver
 
 #endif

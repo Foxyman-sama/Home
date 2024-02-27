@@ -37,12 +37,13 @@ int main(int argc, char **argv) {
 
 #include "modules/core/controller_impl.hpp"
 #include "modules/core/interactor_impl.hpp"
+#include "modules/core/json_container.hpp"
 #include "modules/webserver/html_parser.hpp"
 #include "modules/webserver/webserver.hpp"
 
-int main(int _argc, char **_p_argv) {
+int main() {
   net::io_context io;
-  home::container::JSONContainer container { "data.json" };
+  home::container::JSONContainer container { "build/data.json" };
   home::interactor::InteractorImpl interactor { container };
   home::webserver::HTMLParser parser;
   home::controller::ControllerImpl controller { interactor, parser };

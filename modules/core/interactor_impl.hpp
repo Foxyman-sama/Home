@@ -37,6 +37,16 @@ class InteractorImpl : public Interactor {
 
   std::string get(const std::string &filename) override;
 
+  std::vector<std::string> getSavedFilenames() override {
+    std::vector<std::string> res;
+    const auto temp { container.getSavedFilenames() };
+    for (const auto &el : temp) {
+      res.emplace_back(decoder.decode(el));
+    }
+
+    return res;
+  }
+
  private:
   std::pair<size_t, size_t> trySave(const std::unordered_map<std::string, std::string> &files);
   void saveFile(const std::string &filename, const std::string &filedata);

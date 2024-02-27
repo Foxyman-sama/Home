@@ -29,7 +29,6 @@ class WebServer {
  private:
   void handleGet(net::Socket &socket);
   void handlePost(net::Socket &socket);
-  std::string makeStringWithInfo(const std::unordered_map<std::string, std::string> &info);
 };
 
 }  // namespace home::webserver

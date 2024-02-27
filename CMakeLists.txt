@@ -5,7 +5,7 @@ option(Testing "Tests" ON)
 configure_file(config.h.in config.h)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 23) 
 
 find_package(Boost REQUIRED)
 

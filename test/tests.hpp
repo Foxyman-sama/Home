@@ -1,7 +1,8 @@
 #ifndef TESTS_CORE_HPP
 #define TESTS_CORE_HPP
 
-#include "tests/integration_tests/general_test.hpp"
+#include "tests/integration_tests/write_get_filenames_test.hpp"
+#include "tests/integration_tests/write_read_test.hpp"
 #include "tests/unit_tests/controller_test.hpp"
 #include "tests/unit_tests/decoder_test.hpp"
 #include "tests/unit_tests/encoder_decoder_test.hpp"
