@@ -19,11 +19,11 @@ void makeHTML(std::string output, std::string boundary, std::vector<std::string>
 
 int main(int argc, char **argv) {
   if (isExisted("build/test_chrome.html") == false) {
-    makeHTML("build/test_chrome.html", Delims::chrome_boundary.data(),
+    makeHTML("build/test_chrome.html", Boundary::chrome.data(),
              { "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
   }
   if (isExisted("build/test_firefox.html") == false) {
-    makeHTML("build/test_firefox.html", Delims::firefox_boundary.data(),
+    makeHTML("build/test_firefox.html", Boundary::firefox.data(),
              { "1.pdf", "1.png", "2.png", "12.pdf", "13.pdf", "14.pdf" });
   }
 

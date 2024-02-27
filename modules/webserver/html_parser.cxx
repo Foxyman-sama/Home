@@ -23,13 +23,13 @@ void Extractor::moveOffset() { offset = getFileNextOffset(); }
 
 bool Extractor::isLastBoundary() const noexcept { return getFileNextOffset() != std::string::npos; }
 
-// WebServer
+// HTMLParser
 
 std::unordered_map<std::string, std::string> HTMLParser::parse(const std::string &str) {
   try {
     return tryParse(str);
-  } catch (...) {
-    throw;
+  } catch (std::exception &e) {
+    throw e;
   }
 }
 std::unordered_map<std::string, std::string> HTMLParser::tryParse(const std::string &str) {
@@ -37,11 +37,16 @@ std::unordered_map<std::string, std::string> HTMLParser::tryParse(const std::str
   return parseFiles(str);
 }
 void HTMLParser::selectBoundary(const std::string &str) {
-  if (str.find(Delims::chrome_boundary) != std::string::npos) {
-    current_delim = Delims::chrome_boundary;
+  if (isBoundaryFound(str, Boundary::chrome)) {
+    current_delim = Boundary::chrome;
+  } else if (isBoundaryFound(str, Boundary::firefox)) {
+    current_delim = Boundary::firefox;
   } else {
-    current_delim = Delims::firefox_boundary;
+    throw std::runtime_error { "Unknown target." };
   }
+}
+const bool HTMLParser::isBoundaryFound(const std::string &str, const std::string_view &boundary) const noexcept {
+  return str.find(boundary) != std::string::npos;
 }
 std::unordered_map<std::string, std::string> HTMLParser::parseFiles(const std::string &str) {
   Extractor extractor { str, current_delim };

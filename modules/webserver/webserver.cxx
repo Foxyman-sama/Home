@@ -6,7 +6,7 @@ namespace home::webserver {
 
 class TextFormater {
  public:
-  static std::string makeStringWithInfo(const std::unordered_map<std::string, std::string> &info) {
+  static std::string makeStringFromInfo(const std::unordered_map<std::string, std::string> &info) {
     std::string result;
     for (auto &&[key, value] : info) {
       result += std::format("{} - {}\n", key, value);
@@ -63,8 +63,8 @@ void WebServer::handlePost(net::Socket &socket) {
   } else if (isPostHTMLBroken(body)) {
     sender.send(socket, ErrorMessages::bad_request, net::http::status::bad_request);
   } else {
-    auto info { controller.save(receiver.getBody()) };
-    sender.send(socket, TextFormater::makeStringWithInfo(info), net::http::status::ok);
+    const auto info { controller.save(receiver.getBody()) };
+    sender.send(socket, TextFormater::makeStringFromInfo(info), net::http::status::ok);
   }
 }
 
